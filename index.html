@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cash Empire — Life RP</title>
+<style>
+:root{--bg:#101827;--panel:#172235;--panel2:#202e45;--text:#f4f7fb;--muted:#a9b7cb;--green:#37d67a;--gold:#ffd166;--line:#34445d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;overflow:hidden}
+#game{display:block;width:100vw;height:100vh;background:#72a96a;image-rendering:pixelated}
+.hud{position:fixed;top:12px;right:12px;display:flex;gap:8px;flex-wrap:wrap;max-width:calc(100vw - 24px);pointer-events:none}
+.pill{background:rgba(16,24,39,.92);border:1px solid var(--line);border-radius:12px;padding:9px 12px;box-shadow:0 5px 18px #0003;font-weight:700}
+.money{color:var(--green)}.small{font-size:12px;color:var(--muted);font-weight:400}
+
+#questCard{position:fixed;top:80px;right:12px;width:min(310px,calc(100vw - 24px));background:rgba(16,24,39,.93);border:1px solid #e0ae3d66;border-radius:14px;padding:10px 13px;line-height:1.45;font-size:13px;box-shadow:0 5px 18px #0003;pointer-events:none}#questCard b{color:#ffd166}#questText{display:block;margin-top:3px;color:#d7e1ee}
+#prompt{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:12px;padding:9px 18px 9px 14px;background:linear-gradient(180deg,#1a2640f2,#0f1626f2);border:1px solid #ffffff2e;border-radius:16px;box-shadow:0 10px 30px #000a,inset 0 1px 0 #ffffff18;max-width:min(92vw,480px);direction:rtl;z-index:6;pointer-events:none}#prompt .pk{min-width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(180deg,#ffffff,#d3dbe8);color:#16202f;font:800 18px/1 system-ui,Arial;border:1px solid #fff;box-shadow:0 3px 0 #7d8ca5,0 6px 12px #0007;animation:pkpulse 1.6s ease-in-out infinite}#prompt .pk.off{background:#25344f;color:#9fb1cc;border-color:#ffffff22;box-shadow:none;animation:none;font-size:20px}#prompt .pi{font-size:26px;line-height:1}#prompt .pt{display:flex;flex-direction:column;gap:2px;text-align:right}#prompt .pt b{font-size:15px;font-weight:700}#prompt .pt small{color:#a9b8cf;font-size:12px}@keyframes pkpulse{0%,100%{transform:translateY(0)}50%{transform:translateY(2px);box-shadow:0 1px 0 #7d8ca5,0 3px 8px #0007}}@media(max-width:700px){#prompt{bottom:166px;padding:7px 14px 7px 10px}}#mobileInteract{width:58px;height:58px;border-radius:50%!important;padding:0!important;background:linear-gradient(180deg,#ffffff,#d3dbe8)!important;color:#16202f!important;font:800 22px system-ui,Arial!important;box-shadow:0 4px 0 #7d8ca5,0 8px 14px #0008}#mobileDash{width:46px;height:46px;border-radius:50%!important;padding:0!important;background:linear-gradient(180deg,#4a90d9,#2b5f9e)!important;box-shadow:0 3px 0 #173659,0 6px 12px #0008;font-size:18px!important}#mobileAttack{width:50px;height:50px;border-radius:50%!important;padding:0!important;background:linear-gradient(180deg,#e25555,#a52b2b)!important;box-shadow:0 3px 0 #5b1616,0 6px 12px #0008;font-size:18px!important}
+#toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;width:min(90vw,440px);z-index:50;pointer-events:none}#toast .toastItem{background:#101827e6;border:1px solid var(--line);padding:6px 12px;border-radius:10px;font-size:13px;line-height:1.35;text-align:center;max-width:100%;box-shadow:0 4px 16px #0006;pointer-events:auto;cursor:pointer;transition:opacity .4s,transform .4s}#toast .toastItem.out{opacity:0;transform:translateY(-8px)}#policeBtn{position:fixed;right:14px;top:calc(50% + 58px);transform:translateY(-50%);width:46px;height:46px;display:grid;place-items:center;background:#172235ed;color:#fff;border:1px solid #ffffff35;border-radius:50%;font-size:21px;cursor:pointer;z-index:5;box-shadow:0 5px 18px #0006}#policeBtn:hover{background:#263952}#hurt{position:fixed;inset:0;pointer-events:none;z-index:4;box-shadow:inset 0 0 120px 30px #e0202000;transition:box-shadow .5s}#hurt.on{box-shadow:inset 0 0 120px 30px #e02020aa;transition:none}@media(max-width:700px){#policeBtn{right:10px;width:42px;height:42px;font-size:19px}}#minimap{position:fixed;left:12px;bottom:46px;width:176px;height:132px;border:2px solid #ffffff40;border-radius:10px;background:#101827e6;box-shadow:0 6px 20px #0008;z-index:3;pointer-events:none}@media(max-width:700px){#minimap{left:auto;right:10px;bottom:10px;width:130px;height:98px}}
+#menuBtn{position:fixed;top:12px;left:12px;background:#172235;color:white;border:1px solid var(--line);border-radius:10px;padding:10px 13px;cursor:pointer}#connection{position:fixed;bottom:12px;left:12px;background:#101827df;border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:12px;color:var(--muted);z-index:2}#connection.online{color:#8df0ad;border-color:#37d67a66}#connection.offline{color:#ffaaa5;border-color:#ef765366}.feature-badge{display:inline-block;background:#ffd166;color:#172235;border-radius:99px;padding:2px 7px;font-weight:bold;margin-inline-start:5px}
+#phoneBtn{position:fixed;right:14px;top:50%;transform:translateY(-50%);width:46px;height:46px;display:grid;place-items:center;background:#172235ed;color:#fff;border:1px solid #ffffff35;border-radius:50%;font-size:21px;cursor:pointer;z-index:5;box-shadow:0 5px 18px #0006;transition:transform .16s ease,background .16s ease}#phoneBtn:hover,#phoneBtn:focus-visible{background:#263952;transform:translateY(-50%) scale(1.08);outline:2px solid var(--green);outline-offset:2px}
+.modal{position:fixed;inset:0;background:#07101bd9;display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.card{width:min(520px,100%);max-height:85vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 20px 70px #0008}
+h2{margin:0 0 8px}p{color:var(--muted);line-height:1.5;margin:7px 0 15px}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px}
+button{font:inherit} .action{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:12px;cursor:pointer;text-align:right}
+.action:hover{border-color:var(--green);background:#263952}.action strong{display:block;margin-bottom:5px}.action span{font-size:12px;color:var(--muted)}
+.modal.phone-mode,.modal.update-mode{background:radial-gradient(ellipse at 50% 25%,#142743c9,#050a13eb);backdrop-filter:blur(7px);padding:12px}.phone-mode .card,.update-mode .card{position:relative;width:min(760px,96vw);max-height:88vh;padding:22px 20px 18px;border-radius:28px;border:1px solid #7087a877;background:linear-gradient(160deg,#18283f 0%,#101a2b 62%,#111d31 100%);box-shadow:0 28px 90px #000b,0 0 0 5px #ffffff08;animation:phonePop .22s ease-out;scrollbar-width:thin;scrollbar-color:#627d9d #111b2c}.phone-mode .card::-webkit-scrollbar,.update-mode .card::-webkit-scrollbar{width:8px}.phone-mode .card::-webkit-scrollbar-thumb,.update-mode .card::-webkit-scrollbar-thumb{border-radius:8px;background:#627d9d}.phone-mode .card:before,.update-mode .card:before{content:'CASH EMPIRE  ·  CITY OS';display:block;width:max-content;max-width:100%;margin:0 auto 16px;padding:6px 13px;border:1px solid #ffffff1a;border-radius:99px;background:#0c1523;color:#9fb8d9;font-size:10px;font-weight:700;letter-spacing:1.3px}.phone-mode h2,.update-mode h2{font-size:25px;letter-spacing:-.4px}.phone-mode #modalDesc{max-width:610px;margin:7px 0 17px;color:#b8c8de;font-size:14px}.phone-mode .actions{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.phone-mode .phone-app{position:relative;min-height:118px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:12px 9px;text-align:center;border-radius:19px;border:1px solid #7186a433;background:linear-gradient(145deg,#253751,#1a2940 72%);box-shadow:inset 0 1px 0 #ffffff0a,0 7px 18px #0002;transition:transform .16s ease,border-color .16s ease,background .16s ease}.phone-mode .phone-app:hover,.phone-mode .phone-app:focus-visible{transform:translateY(-3px);border-color:#64d99a99;background:linear-gradient(145deg,#304662,#20364e);outline:2px solid #37d67a55;outline-offset:1px}.phone-mode .phone-app .app-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:15px;background:linear-gradient(145deg,#4b6f91,#30475f);box-shadow:inset 0 1px 0 #ffffff35,0 5px 12px #0003;font-size:23px}.phone-mode .phone-app strong{margin:0;color:#f4f7fb;font-size:12px;line-height:1.3}.phone-mode .phone-app span:not(.app-icon){display:-webkit-box;max-width:100%;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:#aebdd1;font-size:10px;line-height:1.35}.phone-mode .close,.update-mode .close{margin-top:14px;border:1px solid #ffffff18;background:#26364d;border-radius:12px}.phone-mode .close:hover,.update-mode .close:hover{background:#334a67}.phone-mode #phoneClose,.update-mode #phoneClose{position:absolute;top:16px;right:16px;z-index:3;display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid #ffffff24;border-radius:50%;background:#26364d;color:#fff;font-size:23px;line-height:1;cursor:pointer}.phone-mode #phoneClose:hover,.update-mode #phoneClose:hover{background:#37d67a;color:#102018}.update-mode .actions{display:none}.update-mode #modalDesc{display:grid;gap:10px;margin-top:16px}.update-line{display:block;padding:12px 14px;border:1px solid #ffffff18;border-radius:14px;background:linear-gradient(110deg,#233852,#1a2a40);color:#dce8f7;line-height:1.5}.update-mode #modalDesc{max-width:none;color:#aebdd1}@keyframes phonePop{from{opacity:.5;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.close{margin-top:14px;background:#35445a;border:0;border-radius:10px;color:white;padding:10px 15px;cursor:pointer}
+#phoneClose{display:none}
+#mobileControls{position:fixed;left:12px;bottom:12px;display:none;gap:8px;align-items:end}
+.pad{display:grid;grid-template-columns:44px 44px 44px;grid-template-rows:44px 44px 44px;gap:4px}
+.pad button,.mobileAction{border:1px solid #ffffff35;background:#172235d9;color:white;border-radius:12px;font-size:20px;touch-action:none}
+.pad .up{grid-column:2}.pad .left{grid-column:1;grid-row:2}.pad .down{grid-column:2;grid-row:2}.pad .right{grid-column:3;grid-row:2}
+.mobileAction{height:44px;padding:0 12px;font-size:14px}
+.phone-mode #phoneClose{position:fixed;top:calc(6vh + 16px);right:max(calc((100vw - min(760px,96vw))/2 + 16px),12px)}
+@media(max-width:700px){.hud{top:62px}.hud .pill{max-width:calc(100vw - 76px)}#questCard{top:128px;width:calc(100vw - 76px)}.pill{padding:7px 9px;font-size:13px}#mobileControls{display:flex}#menuBtn{top:10px;left:10px}#phoneBtn{right:10px;width:42px;height:42px;font-size:19px}#chatLog{top:64px!important;left:8px!important;max-width:calc(100vw - 70px)!important}.phone-mode .card,.update-mode .card{padding:18px 13px 14px;border-radius:23px}.phone-mode .card:before,.update-mode .card:before{margin-bottom:12px}.phone-mode h2,.update-mode h2{font-size:20px}.phone-mode #modalDesc{font-size:12px;margin-bottom:12px}.phone-mode .actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.phone-mode .phone-app{min-height:100px;padding:9px 6px;border-radius:16px}.phone-mode .phone-app .app-icon{width:38px;height:38px;border-radius:13px;font-size:21px}.phone-mode .phone-app strong{font-size:11px}.phone-mode .phone-app span:not(.app-icon){font-size:9px}.update-line{font-size:13px;padding:10px 12px}}
+@media(max-width:380px){.phone-mode .actions{grid-template-columns:repeat(2,minmax(0,1fr))}.phone-mode .phone-app{min-height:92px}}
+
+#modalDesc .w-total{display:flex;justify-content:space-between;align-items:flex-end;padding:2px 4px}.w-total small{color:#9fb1c9;font-size:12px;display:block}.w-total strong{font-size:30px;letter-spacing:.3px;color:#fff}.w-balances2{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.w-bal{padding:11px 10px;border-radius:14px;background:#0d1828;border:1px solid #ffffff14;text-align:right}.w-bal small{display:block;color:#9fb1c9;font-size:11px}.w-bal strong{display:block;margin-top:3px;font-size:16px;color:#f4f7fb}.w-bal.sel{border-color:#e6c46d;box-shadow:inset 0 0 0 1px #e6c46d55}.w-card{position:relative;overflow:hidden;border-radius:18px;padding:16px 18px;min-height:128px;background:linear-gradient(135deg,#1f3a5f,#0f2038 55%,#3b2a5a);border:1px solid #ffffff2a;box-shadow:0 10px 24px #0006;color:#f4f7fb;text-align:right}.w-card .chip{width:38px;height:28px;border-radius:6px;background:linear-gradient(135deg,#f1d98b,#b8913a);margin:6px 0 12px}.w-card .num{font:600 17px/1.2 ui-monospace,Menlo,monospace;letter-spacing:2px;direction:ltr;text-align:left}.w-card .meta{display:flex;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px;color:#c9d6e6}.w-card .brand{position:absolute;top:14px;left:16px;font-weight:800;letter-spacing:1px;font-size:13px;opacity:.9}.w-card.off{background:#0d1828;border:1px dashed #ffffff40;display:grid;place-items:center;text-align:center;color:#9fb1c9;gap:4px}.w-limit{height:6px;border-radius:4px;background:#ffffff25;margin-top:9px;overflow:hidden}.w-limit i{display:block;height:100%}.w-segwrap{display:grid;gap:6px}.w-lbl{color:#9fb1c9;font-size:12px;padding:0 4px}.w-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#0d1828;padding:4px;border-radius:12px;border:1px solid #ffffff14}.w-seg button{border:0;border-radius:9px;padding:8px 6px;background:transparent;color:#aebdd1;font:inherit;font-size:13px;cursor:pointer}.w-seg button.on{background:#e6c46d;color:#1c1606;font-weight:700}.w-tx{display:grid;gap:6px}.w-tx h4{margin:2px 4px;font-size:13px;color:#9fb1c9;font-weight:600}.w-row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;background:#0d1828;border:1px solid #ffffff10;font-size:13px;text-align:right}.w-row small{display:block;color:#7f90a8;font-size:11px}.w-row .a.in{color:#7ee787}.w-row .a.out{color:#ff8d8d}.w-row .a.chk,.w-row .a.xfer{color:#f0c674}@media(max-width:700px){.w-total strong{font-size:24px}.w-bal strong{font-size:14px}}
+#walletBtn{position:fixed;right:14px;top:calc(50% - 58px);transform:translateY(-50%);width:46px;height:46px;display:grid;place-items:center;background:#172235ed;color:#fff;border:1px solid #ffffff35;border-radius:50%;font-size:21px;cursor:pointer;z-index:5;box-shadow:0 5px 18px #0006;transition:transform .16s ease,background .16s ease}#walletBtn:hover,#walletBtn:focus-visible{background:#263952;transform:translateY(-50%) scale(1.08);outline:2px solid #e6c46d;outline-offset:2px}.wallet-mode .card{width:min(560px,94vw);background:linear-gradient(150deg,#182840,#101a2a);border:1px solid #d8bd6c66}.wallet-mode #modalDesc{display:grid;gap:12px}.wallet-mode .actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.wallet-bill{position:relative;overflow:hidden;min-height:112px;padding:16px 20px;display:flex;flex-direction:column;gap:4px;border:1px solid #c4d98f99;border-radius:18px;background:linear-gradient(115deg,#738f47,#9cab5b 48%,#536c39);color:#fbffe8;box-shadow:inset 0 1px 0 #ffffff55,0 8px 20px #0004}.wallet-bill strong{font-size:30px;letter-spacing:.4px}.wallet-bill span{font-size:11px}.wallet-bill .wallet-bank{letter-spacing:1.1px;font-weight:800}.wallet-bill i{position:absolute;right:18px;top:25px;font-size:34px;font-style:normal;opacity:.58}.wallet-balances{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.wallet-balance{padding:12px 7px;text-align:center;border-radius:13px;background:#0c1625;border:1px solid #ffffff17}.wallet-balance strong,.wallet-balance span{display:block}.wallet-balance strong{color:#f4f7fb;font-size:14px}.wallet-balance span{margin-top:5px;color:#aebdd1;font-size:10px}.wallet-card{display:flex;flex-direction:column;gap:12px;padding:16px 18px;border:1px solid #b8c6d255;border-radius:16px;background:linear-gradient(130deg,#344255,#182537);color:#f4f7fb;box-shadow:0 6px 16px #0003}.wallet-card span{font-size:10px;letter-spacing:1px;color:#c9d6e6}.wallet-card b{font-size:18px;letter-spacing:1.4px}.wallet-card small{color:#9eafc4;font-size:10px}@media(max-width:700px){#walletBtn{right:10px;top:calc(50% - 54px);width:42px;height:42px;font-size:19px}.wallet-mode .card{padding:18px 13px 14px}.wallet-mode .actions{grid-template-columns:repeat(2,minmax(0,1fr))}.wallet-bill{min-height:94px}.wallet-bill strong{font-size:25px}}
+#shiftCard{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);width:min(94vw,460px);background:#101827f2;border:1px solid #ffffff40;border-radius:14px;padding:10px 12px;z-index:6;box-shadow:0 8px 26px #0008;display:none}#shiftCard .sh-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:700}#shiftCard .sh-bar{height:6px;background:#ffffff25;border-radius:4px;margin:7px 0;overflow:hidden}#shiftCard .sh-bar i{display:block;height:100%;background:#4ade80;width:0}#shiftCard .sh-q{font-size:14px;margin:6px 0}#shiftCard .sh-opts{display:grid;gap:6px}#shiftCard button{background:#1d2a3f;color:#fff;border:1px solid #ffffff30;border-radius:9px;padding:7px 10px;font:inherit;font-size:13px;cursor:pointer}#shiftCard button:hover{background:#2c4163}#shiftCard .sh-t{height:3px;background:#ffb44a;border-radius:2px;margin-top:6px}#chatLog:empty{display:none}
+#vc{position:fixed;inset:0;z-index:70;background:#0b1320f2;display:none;align-items:center;justify-content:center;padding:12px}
+#vc .vcbox{width:min(560px,100%);max-height:100%;overflow:auto;background:#142238;border:1px solid #ffffff26;border-radius:18px;padding:14px;color:#fff}
+.vcvids{position:relative}#vcRemote{width:100%;aspect-ratio:4/3;background:#000;border-radius:12px;display:block}#vcLocal{position:absolute;bottom:8px;left:8px;width:28%;border-radius:8px;border:2px solid #37d67a;background:#000}
+#vc textarea{width:100%;height:64px;margin-top:8px;background:#0d1828;color:#fff;border:1px solid #4b607a;border-radius:8px;font-size:11px}
+.vcbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.vcbtns button{flex:1;min-width:95px;padding:9px;border:0;border-radius:9px;background:#2a3b55;color:#fff;font:inherit;cursor:pointer}#vcEnd{background:#c0392b!important}
+@media(max-width:700px){#minimap{left:8px!important;right:auto!important;bottom:auto!important;top:46%;width:104px!important;height:78px!important}#connection{display:none}#questCard{top:200px!important;left:8px;right:8px!important;max-width:none;font-size:12px;padding:6px 10px}#chatLog{top:258px!important;max-width:62vw}#toast{top:200px!important}#mobileDash{margin-bottom:4px}}</style>
+</head>
+<body>
+<div id="identityScreen" style="position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(135deg,#091421f5,#102339ef);backdrop-filter:blur(8px)"><form id="identityForm" style="width:min(420px,100%);padding:26px;border-radius:22px;border:1px solid #ffffff26;background:#142238;color:#fff;box-shadow:0 24px 90px #0008"><h1 style="margin:0 0 8px">🏙️ Cash Empire</h1><p style="color:#c2d1e3;line-height:1.6">תפריט כניסה: בחר דמות שמורה או צור דמות חדשה, והזן קוד אישי (4 תווים לפחות). הקוד מגן על הדמות בדפדפן הזה.</p><div id="savedChars"></div><label style="display:block;margin:12px 0 5px">שם פרטי</label><input id="firstNameInput" maxlength="18" required autocomplete="given-name" style="width:100%;padding:12px;border-radius:10px;border:1px solid #4b607a;background:#0d1828;color:white;font:inherit"><label style="display:block;margin:12px 0 5px">שם משפחה</label><input id="lastNameInput" maxlength="18" required autocomplete="family-name" style="width:100%;padding:12px;border-radius:10px;border:1px solid #4b607a;background:#0d1828;color:white;font:inherit"><label style="display:block;margin:12px 0 5px">קוד אישי</label><input id="codeInput" type="password" minlength="4" maxlength="20" required autocomplete="current-password" style="width:100%;padding:12px;border-radius:10px;border:1px solid #4b607a;background:#0d1828;color:white;font:inherit"><button type="submit" style="margin-top:16px;width:100%;padding:13px;border:0;border-radius:11px;background:#37d67a;color:#092016;font-weight:bold;font-size:16px;cursor:pointer">כניסה לעיר 🌆</button><p id="identityError" style="color:#ff9b9b;min-height:20px"></p><small style="color:#a9b7cb">שכחת קוד? אי אפשר לשחזר אותו — צור דמות חדשה בשם אחר.</small></form></div>
+<canvas id="game" aria-label="Cash Empire game world"></canvas>
+<div class="hud">
+ <div class="pill">💵 כסף: <span class="money" id="cash">₪500</span></div>
+ <div class="pill">🏦 בנק: <span id="bank">₪0</span></div>
+ <div class="pill">⭐ רמה: <span id="level">1</span> <span class="small">· XP <span id="xp">0</span></span></div>
+ <div class="pill">🚗 <span id="vehicle">ברגל</span></div><div class="pill">🌐 שחקנים: <span id="onlineCount">1</span></div><div class="pill">⚡ אנרגיה: <span id="energy">100%</span></div><div class="pill" id="hpPill">❤️ חיים: <span id="hp">100</span>%</div><div class="pill" id="checksPill" style="display:none">📄 צ׳קים: <span id="checksAmt"></span></div><div class="pill" id="weaponPill" style="display:none"></div><div class="pill" id="wantedPill" style="display:none;border-color:#ff5a5a;color:#ff9a9a">🚨 מבוקש: <span id="stars"></span></div>
+</div>
+<div id="questCard"><b>📜 סיפור העיר</b><span id="questText">מתחבר לעיר...</span></div>
+<button id="menuBtn">☰ תפריט</button>
+<button id="walletBtn" type="button" aria-label="פתח ארנק" title="הארנק שלי">👛</button><button id="policeBtn" type="button" aria-label="התקשר למשטרה" title="התקשר למשטרה">🚓</button><div id="hurt"></div><button id="phoneBtn" type="button" aria-label="פתח טלפון ופעילויות" title="הטלפון שלי · אפליקציות ותקשורת">📱</button>
+<div id="connection" class="offline">● מתחבר לעיר…</div>
+
+<div id="shiftCard"></div><canvas id="minimap" width="176" height="132"></canvas><div id="prompt"></div><div id="toast" role="status" aria-live="polite"></div><script src="/api/socket-io/socket.io.js"></script>
+<div id="chatLog" aria-live="polite" style="position:fixed;left:12px;top:64px;max-width:300px;max-height:34vh;overflow:hidden;pointer-events:none;font-size:13px;text-shadow:0 2px 4px #000;background:#101827eF;border:1px solid #ffffff26;box-shadow:0 8px 24px #0007;border-radius:10px;padding:8px;line-height:1.6;z-index:50"></div><script>
+// Single-player offline shim: replaces the Socket.IO server. Progress is saved in this browser (localStorage).
+(function(){
+  const KEY='cashEmpireStaticProfiles';
+  const H=[[370,120],[850,130],[1320,120],[1800,120],[2280,120],[2760,120],[3240,120],[3720,120],[4200,120],[4680,120],[5160,120]];
+  const V=[[450,120],[1050,120],[1650,120],[2150,100],[2750,120],[3350,120],[3950,120],[4550,120],[5150,120],[5750,120],[6350,120],[6950,120]];
+  const sha256=async t=>{try{if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('cashEmpire|'+t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}}catch{}return null};
+  const hashCode=t=>{let x=5381;for(const c of t)x=((x<<5)+x+c.charCodeAt(0))|0;return String(x>>>0)};
+  const clean=v=>String(v||'').replace(/[<>\u0000-\u001f]/g,'').trim();
+  const jokes=['חדשות העיר: היונה ליד הבנק קיבלה קידום לסגנית מנהלת 🐦','משרד התחבורה הודיע: הפקק של שני אנשים והקטנוע נפתח לתנועה 🚦','הסופרמרקט מבקש: מי שלקח את העגלה לטיול בפארק, להחזיר אותה בבקשה 🛒','תחזית להיום: 100% סיכוי שמישהו יגיד "אני רק מסתכל" בסוכנות 🚗','דיווח מהפארק: מישהו ניסה לשלם לברווז בשטר של מונופול 🦆','הבנק אישר: אפשר להפקיד צ׳ק שכתוב עליו "יום אחד אהיה עשיר". הוא עדיין בבדיקה 🏦'];
+  function readAll(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}}
+  function writeAll(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch{}}
+  if(typeof window.io!=='function')window.io=function(){
+    const handlers={},sock={id:'local',on(ev,fn){(handlers[ev]=handlers[ev]||[]).push(fn);return sock},emit(ev,data){setTimeout(()=>handle(ev,data),0);return sock}};
+    const fire=(ev,...a)=>(handlers[ev]||[]).forEach(fn=>fn(...a));
+    let me=null,key=null,weather='☀️ בהיר',last={chat:0,bulletin:0,weather:0};
+    const save=()=>{if(key){const all=readAll();all[key]=me.profile;writeAll(all)}};
+    async function handle(ev,d){
+      if(ev==='hello'){
+        const f=clean(d&&d.firstName).slice(0,18),l=clean(d&&d.lastName).slice(0,18);
+        if(!f||!l)return fire('profile:error','נא להזין שם פרטי ושם משפחה.');
+        key=(f+' '+l).normalize('NFKC').toLocaleLowerCase('he');
+        const code=String(d&&d.code||'').trim();if(code.length<4)return fire('profile:error','הזן קוד אישי של 4 תווים לפחות.');
+        const all=readAll(),isNew=!all[key],hs=hashCode(key+'|'+code),h2=await sha256(key+'|'+code);const lockKey='cashEmpireLock:'+key;let lk={};try{lk=JSON.parse(localStorage.getItem(lockKey)||'{}')}catch{}if(lk.until>Date.now())return fire('profile:error','יותר מדי ניסיונות. נסה שוב בעוד '+Math.ceil((lk.until-Date.now())/1000)+' שניות.');const acc=all[key];if(acc){const ok=acc.codeHash2&&h2?acc.codeHash2===h2:(!acc.codeHash||acc.codeHash===hs);if(!ok){lk.n=(lk.n||0)+1;if(lk.n>=5){lk.until=Date.now()+60000;lk.n=0}try{localStorage.setItem(lockKey,JSON.stringify(lk))}catch{}return fire('profile:error','קוד שגוי לדמות הזאת.')}try{localStorage.removeItem(lockKey)}catch{}}
+        const p=all[key]||{cash:500,bank:0,xp:0,level:1,vehicle:'ברגל',vehicleSpeed:1,hasHouse:false,houseIncome:Date.now(),ownedCars:[],dailyRewardDay:'',creditCard:false,creditLimit:500,creditDebt:0,paymentMethod:'cash',hasSeenIntro:false,storyStep:0,skin:{shirt:'#2675c8',tone:'#f2c7a4',hair:'#3b2a24'},cooldowns:{},activities:{},achievements:[],collectibles:[],pet:'',homeLevel:0,carColor:'#4e8de2',gardenAt:0,energy:100,treasure:null,delivery:null,dailyContractsDay:'',dailyContracts:0};
+        if(h2){p.codeHash2=h2;delete p.codeHash}else p.codeHash=hs;p.display=f+' '+l;
+        me={name:f+' '+l,profile:p};save();
+        const pub={...p};delete pub.codeHash;delete pub.codeHash2;fire('profile:load',{...pub,firstName:f,lastName:l,isNew:isNew||!p.hasSeenIntro,storageWarning:false});
+        fire('world',[{id:'local',name:me.name,x:p.x,y:p.y}]);fire('city:weather',weather);
+      }else if(!me){return}
+      else if(ev==='profile:update'&&d&&typeof d==='object'){const old=me.profile;me.profile={...old,...d,hasSeenIntro:old.hasSeenIntro,dailyRewardDay:old.dailyRewardDay};save()}
+      else if(ev==='story:seen'){me.profile.hasSeenIntro=true;save()}
+      else if(ev==='daily:claim'){const p=me.profile,today=new Date().toLocaleDateString('en-CA');
+        if(p.dailyRewardDay===today)return fire('daily:result',{ok:false,message:'המתנה היומית כבר נאספה היום.'});
+        p.dailyRewardDay=today;p.cash+=250;p.xp+=25;while(p.xp>=p.level*100){p.xp-=p.level*100;p.level++;p.cash+=100}save();fire('daily:result',{ok:true,cash:p.cash,xp:p.xp,level:p.level})}
+      else if(ev==='chat'){if(Date.now()-last.chat<900)return;last.chat=Date.now();const t=clean(d).slice(0,140);if(t)fire('chat',{name:me.name,text:t})}
+      else if(ev==='emote'){fire('emote',{name:me.name,text:d})}
+      else if(ev==='phone:message'){fire('phone:message:result',{ok:false,to:d&&d.to})}
+      else if(ev==='phone:call'){fire('phone:call:result',{ok:false,to:d&&d.to})}
+      else if(ev==='leaderboard:request'){const all=readAll();fire('leaderboard:result',Object.entries(all).map(([k,p])=>({name:k,cash:p.cash||0,bank:p.bank||0,level:p.level||1,reputation:p.xp||0})).sort((a,b)=>(b.cash+b.bank)-(a.cash+a.bank)).slice(0,10))}
+      else if(ev==='city:bulletin'){if(Date.now()-last.bulletin<30000)return;last.bulletin=Date.now();const t=clean(d).slice(0,80);if(t)fire('city:bulletin',{name:me.name,text:t})}
+      else if(ev==='city:weather'){if(Date.now()-last.weather<20000)return;if(['☀️ בהיר','🌧️ גשם קל','🌫️ ערפל בוקר','🌙 לילה זרוע כוכבים'].includes(d)){last.weather=Date.now();weather=d;fire('city:weather',weather)}}
+    }
+    const joke=()=>setTimeout(()=>{if(me)fire('city:joke',jokes[Math.floor(Math.random()*jokes.length)]);joke()},45000+Math.random()*40000);joke();
+    setTimeout(()=>fire('connect'),0);
+    return sock;
+  };
+})();
+</script>
+<div class="modal" id="modal"><div class="card"><button id="phoneClose" type="button" aria-label="סגור חלון">×</button><h2 id="modalTitle">Cash Empire</h2><p id="modalDesc"></p><div class="actions" id="modalActions"></div><button class="close" id="closeModal">סגירה ✕</button></div></div>
+<div id="mobileControls">
+ <div class="pad"><button class="up" data-move="up">▲</button><button class="left" data-move="left">◀</button><button class="down" data-move="down">▼</button><button class="right" data-move="right">▶</button></div>
+ <button class="mobileAction" id="mobileInteract" aria-label="פעולה">E</button>
+ <button class="mobileAction" id="mobileDash" aria-label="התחמקות">💨</button>
+ <button class="mobileAction" id="mobileAttack" aria-label="דקירה">🔪</button>
+</div>
+<script>
+(() => {
+'use strict';
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const cashEl=document.getElementById('cash'),bankEl=document.getElementById('bank'),levelEl=document.getElementById('level'),xpEl=document.getElementById('xp'),vehicleEl=document.getElementById('vehicle');
+const promptEl=document.getElementById('prompt'),toastEl=document.getElementById('toast'),modal=document.getElementById('modal');
+const APP_VERSION='1.19.0',UPDATE_KEY='cashEmpireLastSeenUpdate';
+let W=innerWidth,H=innerHeight,dpr=Math.min(devicePixelRatio||1,2);
+function resize(){W=innerWidth;H=innerHeight;canvas.width=Math.floor(W*dpr);canvas.height=Math.floor(H*dpr);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0)}
+addEventListener('resize',resize);resize();
+const SC=1.5;const WORLD={w:Math.round(7200*SC),h:Math.round(5400*SC)};
+const state={cash:500,bank:0,xp:0,level:1,jobCooldown:0,storyStep:0,vehicle:'ברגל',vehicleSpeed:1,hasHouse:false,houseIncome:0,ownedCars:[],skin:{shirt:'#2675c8',tone:'#f2c7a4',hair:'#3b2a24'},activities:{},achievements:[],pet:'',homeLevel:0,carColor:'#4e8de2',gardenAt:0,stamina:100,energy:100,creditCard:false,creditLimit:500,creditDebt:0,paymentMethod:'cash',treasure:null,delivery:null,collectibles:[],dailyContractsDay:'',dailyContracts:0,lastSave:Date.now()};
+const player={x:1200,y:1015,r:13,speed:2.6,faceX:0,faceY:1,dead:false,moving:false,handsUp:false};
+const keys=new Set(), mobile=new Set(), actionCooldowns=new Map(),cityMessages=[];let interactCooldownUntil=0,lastFrame=0,waypoint=null;
+const socket=io({path:'/api/socket-io/socket.io',transports:['websocket'],reconnection:true,reconnectionDelay:1000,reconnectionDelayMax:5000});const remotePlayers=new Map();let lastNet=0,lastProfileSync=0,profileReady=false,playerName='',currentWeather='☀️ בהיר',audioContext=null,ambientTimer=null,photoMode=false;const firstNameInput=document.getElementById('firstNameInput'),lastNameInput=document.getElementById('lastNameInput'),connectionEl=document.getElementById('connection');try{const prev=JSON.parse(localStorage.getItem('cashEmpireIdentity')||'{}');firstNameInput.value=prev.firstName||'';lastNameInput.value=prev.lastName||''}catch{}document.getElementById('identityForm').addEventListener('submit',e=>{e.preventDefault();const firstName=firstNameInput.value.trim(),lastName=lastNameInput.value.trim();if(!firstName||!lastName){document.getElementById('identityError').textContent='יש למלא שם פרטי ושם משפחה';return}localStorage.setItem('cashEmpireIdentity',JSON.stringify({firstName,lastName}));playerName=firstName+' '+lastName;document.getElementById('identityError').textContent='מתחבר לשרת…';socket.emit('hello',{firstName,lastName,code:document.getElementById('codeInput').value,x:player.x,y:player.y});setTimeout(()=>{if(!profileReady)document.getElementById('identityError').textContent='לא הצלחתי להתחבר לשרת העיר. בדוק את כתובת האתר ואת הגדרות השרת.'},8000)});socket.on('connect',()=>{connectionEl.textContent='● מחובר לעיר';connectionEl.className='online';if(profileReady){const identity=JSON.parse(localStorage.getItem('cashEmpireIdentity')||'{}');socket.emit('hello',{firstName:identity.firstName,lastName:identity.lastName,x:player.x,y:player.y})}});socket.on('disconnect',()=>{connectionEl.textContent='● החיבור לעיר נותק — מנסה שוב';connectionEl.className='offline';profileReady=false});socket.on('connect_error',()=>{connectionEl.textContent='● אין חיבור לשרת המשחק';connectionEl.className='offline'});socket.on('profile:error',msg=>{document.getElementById('identityError').textContent=msg;document.getElementById('identityScreen').style.display='flex'});socket.on('profile:load',profile=>{for(const k of ['cash','bank','xp','level','storyStep','creditCard','creditLimit','creditDebt','paymentMethod','vehicle','vehicleSpeed','hasHouse','houseIncome','ownedCars','activities','achievements','pet','homeLevel','carColor','gardenAt','energy','treasure','delivery','collectibles','dailyContractsDay','dailyContracts','txns','job','checks','property','mortgage','items','hp','weapons','equipped'])if(profile[k]!==undefined)state[k]=profile[k];if(profile.skin)state.skin=profile.skin;actionCooldowns.clear();for(const [key,until] of Object.entries(profile.cooldowns||{}))if(until>Date.now())actionCooldowns.set(key,until);state.vehicleSpeed=VEHICLE_SPEEDS[state.vehicle]||1;player.x=Number.isFinite(profile.x)?Math.max(20,Math.min(WORLD.w-20,profile.x)):SPAWN.x;player.y=Number.isFinite(profile.y)?Math.max(20,Math.min(WORLD.h-20,profile.y)):SPAWN.y;if(collides(player.x,player.y)||onRoad(player.x,player.y,10)){player.x=SPAWN.x;player.y=SPAWN.y}playerName=profile.firstName+' '+profile.lastName;profileReady=true;if(profile.storageWarning){connectionEl.textContent='● מחובר · השמירה זמנית';connectionEl.className='offline'}document.getElementById('identityScreen').style.display='none';document.getElementById('identityError').textContent='';updateHud();if(profile.isNew)showIntroStory(true);else{toast('ברוך הבא לעיר, '+playerName+'!');showUpdateIfNew() }});socket.on('daily:result',result=>{if(!result.ok){toast(result.message);return}state.cash=result.cash;state.xp=result.xp;state.level=result.level;updateHud();toast('קיבלת מתנה יומית! ₪250 ו־25 XP 🎁');syncProfile()});socket.on('world',list=>{remotePlayers.clear();for(const p of list)if(p.id!==socket.id)remotePlayers.set(p.id,p);document.getElementById('onlineCount').textContent=list.length});socket.on('player:join',p=>{remotePlayers.set(p.id,p);document.getElementById('onlineCount').textContent=remotePlayers.size+1});socket.on('player:move',p=>{remotePlayers.set(p.id,p)});socket.on('player:leave',id=>{remotePlayers.delete(id);document.getElementById('onlineCount').textContent=remotePlayers.size+1});socket.on('chat',m=>{cityMessages.unshift('💬 '+m.name+': '+m.text);if(cityMessages.length>20)cityMessages.pop();const box=document.getElementById('chatLog'),row=document.createElement('div');row.textContent=m.name+': '+m.text;box.appendChild(row);while(box.children.length>4)box.firstChild.remove();setTimeout(()=>row.remove(),15000)});socket.on('phone:message',m=>{if(!window.phoneMessages)window.phoneMessages=[];window.phoneMessages.unshift(m);window.phoneMessages=window.phoneMessages.slice(0,100);if(m.from!==playerName)toast('💬 '+m.from+': '+m.text,6000)});socket.on('phone:message:result',r=>{if(!r.ok)toast('השחקן לא מחובר כרגע או שאי אפשר לשלוח הודעה')});socket.on('phone:call:incoming',call=>openModal('📲 שיחה נכנסת',call.from+' מתקשר אליך',[{title:'✅ לענות',sub:'אשר את השיחה במשחק',cooldownMs:0,run:()=>{socket.emit('phone:call:answer',{to:call.from,accepted:true});toast('השיחה עם '+call.from+' נענתה ✓')}},{title:'🔕 לדחות',sub:'שלח הודעת דחייה',cooldownMs:0,run:()=>socket.emit('phone:call:answer',{to:call.from,accepted:false})}]));socket.on('phone:call:result',r=>toast(r.ok?'📲 מתקשר ל־'+r.to+'…':'השחקן לא מחובר כרגע'));socket.on('phone:call:answered',r=>toast(r.accepted?'✅ '+r.from+' ענה לשיחה':'📵 '+r.from+' דחה את השיחה'));socket.on('emote',m=>chatLine(m.name+' '+m.text));socket.on('city:joke',message=>{cityMessages.unshift('📣 '+message);if(cityMessages.length>20)cityMessages.pop();chatLine('📣 '+message)});socket.on('city:bulletin',m=>{cityMessages.unshift('📣 '+m.name+': '+m.text);if(cityMessages.length>20)cityMessages.pop();chatLine('📣 '+m.name+': '+m.text)});socket.on('city:weather',weather=>{currentWeather=weather;chatLine('מזג האוויר בעיר: '+weather)});socket.on('leaderboard:result',list=>openModal('🏆 דירוג העיר','10 התושבים עם הכי הרבה כסף ומוניטין.',list.map((p,i)=>({title:`${i+1}. ${p.name}`,sub:`${fmt(p.cash)} · רמה ${p.level}`,cooldownMs:0,run:()=>{}}))));
+const HROADS=[[370,120],[850,130],[1320,120],[1800,120],[2280,120],[2760,120],[3240,120],[3720,120],[4200,120],[4680,120],[5160,120]].map(([y,h])=>[Math.round(y*SC),h]);
+const VROADS=[[450,120],[1050,120],[1650,120],[2150,100],[2750,120],[3350,120],[3950,120],[4550,120],[5150,120],[5750,120],[6350,120],[6950,120]].map(([x,w])=>[Math.round(x*SC),w]);
+const roads=[...HROADS.map(([y,h])=>({x:0,y,w:WORLD.w,h})),...VROADS.map(([x,w])=>({x,y:0,w,h:WORLD.h}))];
+const places=[
+{id:'job',x:650,y:260,w:180,h:90,name:'מרכז עבודות',emoji:'🧰',color:'#315b70',desc:'עבודות בעיר'},
+{id:'bank',x:1190,y:500,w:150,h:100,name:'הבנק המרכזי',emoji:'🏦',color:'#315d91',desc:'הפקדה ומשיכה'},
+{id:'dealer',x:1790,y:510,w:180,h:100,name:'סוכנות רכבים',emoji:'🚗',color:'#6c4e8e',desc:'רכבים'},
+{id:'house',x:650,y:1040,w:170,h:110,name:'בית למכירה',emoji:'🏠',color:'#8b6547',desc:'נכס אישי'},
+{id:'shop',x:1240,y:1050,w:170,h:100,name:'סופרמרקט',emoji:'🛒',color:'#547b47',desc:'ציוד ופריטים'},
+{id:'park',x:1840,y:1030,w:230,h:170,name:'הפארק העירוני',emoji:'🌳',color:'#2d794d',desc:'מקום להירגע',solid:false}
+,{id:'cafe',x:1210,y:670,w:170,h:100,name:'קפה השדרה',emoji:'☕',color:'#986343',desc:'קפה ומפגש חברים'}
+,{id:'gym',x:1820,y:1245,w:180,h:65,name:'מכון הכושר',emoji:'🏋️',color:'#586d88',desc:'אימון וכושר'},
+{id:'falafel',x:290,y:735,w:140,h:85,name:'פלאפל שמעון',emoji:'🧆',color:'#b6793f',desc:'פיתה, סלט וטחינה'},
+{id:'bakery',x:890,y:230,w:145,h:85,name:'מאפיית רחל',emoji:'🥖',color:'#b37c49',desc:'בורקס וקפה'},
+{id:'market',x:1470,y:1170,w:155,h:90,name:'שוק העיר',emoji:'🧺',color:'#a24f43',desc:'ירקות, פירות ומיקוח'},
+{id:'busStation',x:1195,y:1510,w:190,h:95,name:'תחנה מרכזית',emoji:'🚌',color:'#367d82',desc:'קווי אוטובוס בעיר'}
+,{id:'cityhall',x:700,y:730,w:180,h:95,name:'בית העירייה',emoji:'🏛️',color:'#907b54',desc:'חדשות ומשימות העיר'}
+,{id:'arcade',x:1450,y:730,w:170,h:95,name:'ארקייד פיקסל',emoji:'🕹️',color:'#735091',desc:'משחקים ופרסים'}
+,{id:'police',x:1195,y:1180,w:180,h:95,name:'תחנת משטרה',emoji:'🚓',color:'#2b4a8c',desc:'דיווחים, קנסות ומעצרים'}
+,{id:'knives',x:120,y:1215,w:160,h:90,name:'חנות הסכינים',emoji:'🔪',color:'#5d5d66',desc:'סכינים וערכות עזרה ראשונה'}
+];
+const buildings=[
+{x:120,y:100,w:220,h:190,c:'#b8a58d'},{x:620,y:90,w:240,h:110,c:'#c7b18d'},{x:1220,y:110,w:250,h:160,c:'#8b9fb0'},{x:1790,y:110,w:240,h:190,c:'#c9a8a0'},
+{x:100,y:520,w:240,h:190,c:'#b2a1bd'},{x:630,y:550,w:230,h:170,c:'#d0b78d'},{x:1450,y:540,w:130,h:180,c:'#b4c3b4'},{x:2000,y:570,w:130,h:190,c:'#c5a88e'},
+{x:100,y:1010,w:230,h:190,c:'#b7b7a4'},{x:900,y:1050,w:110,h:190,c:'#b9a4a0'},{x:1480,y:1030,w:150,h:120,c:'#c8b18c'},{x:120,y:1450,w:230,h:180,c:'#b8a58d'},{x:650,y:1460,w:250,h:180,c:'#8fabb5'},{x:1410,y:1450,w:220,h:180,c:'#c4a6a0'},{x:1800,y:1450,w:270,h:180,c:'#b4a98d'}
+];
+for(const o of [...places,...buildings]){o.x=Math.round(o.x*SC);o.y=Math.round(o.y*SC)}
+// ===== Expanded city: procedural districts around the original town =====
+function seeded(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+const blockZones=[];
+(function generateDistricts(){
+  const rnd=seeded(20261015),palette=['#b8a58d','#c7b18d','#8b9fb0','#c9a8a0','#b2a1bd','#d0b78d','#b4c3b4','#c5a88e','#b7b7a4','#b9a4a0','#c8b18c','#8fabb5'];
+  const xs=[],ys=[];let cur=0;for(const [x,w] of VROADS){xs.push([cur,x]);cur=x+w}xs.push([cur,WORLD.w]);cur=0;for(const [y,h] of HROADS){ys.push([cur,y]);cur=y+h}ys.push([cur,WORLD.h]);
+  const free=(r,m)=>!buildings.some(b=>r.x<b.x+b.w+m&&r.x+r.w>b.x-m&&r.y<b.y+b.h+m&&r.y+r.h>b.y-m)&&!places.some(q=>r.x<q.x+q.w+m&&r.x+r.w>q.x-m&&r.y<q.y+q.h+m&&r.y+r.h>q.y-m);
+  for(const [y0,y1] of ys)for(const [x0,x1] of xs){
+    if(x1<=2400*SC&&y1<=1800*SC)continue;
+    if(x1-x0<260||y1-y0<260)continue;
+    const kind=rnd(),pad=76,ix=x0+pad,iy=y0+pad,iw=x1-x0-pad*2,ih=y1-y0-pad*2;
+    if(kind<.2){blockZones.push({type:'park',x:x0,y:y0,w:x1-x0,h:y1-y0});continue}
+    if(kind<.38){blockZones.push({type:'forest',x:x0,y:y0,w:x1-x0,h:y1-y0});continue}
+    let y=iy;
+    while(y<iy+ih-110){
+      const bh=Math.min(110+Math.floor(rnd()*90),iy+ih-y);let x=ix;
+      while(x<ix+iw-120){
+        const bw=Math.min(120+Math.floor(rnd()*130),ix+iw-x);
+        if(rnd()>.32){const b={x:Math.round(x),y:Math.round(y),w:Math.round(bw),h:Math.round(bh),c:palette[Math.floor(rnd()*palette.length)]};if(free(b,70))buildings.push(b)}
+        x+=bw+90+Math.floor(rnd()*90);
+      }
+      y+=bh+130+Math.floor(rnd()*70);
+    }
+  }
+})();
+// ===== Bus system: lines, stops and physical buses (deterministic by clock, same for every player) =====
+const BUS_FARE=15,BUS_SPEED=230,BUS_DWELL=8,LANE=30,SHELTER_OUT=46;
+const VCENTER=VROADS.map(([x,w])=>x+w/2),HCENTER=HROADS.map(([y,h])=>y+h/2);
+const BUS_LINES=[
+ {no:'5',color:'#278987',x0:510,x1:1710,y0:915,y1:1380,stops:6},
+ {no:'18',color:'#d9822b',x0:510,x1:1110,y0:430,y1:915,stops:5},
+ {no:'72',color:'#3a6fb0',x0:1710,x1:2200,y0:430,y1:1380,stops:6},
+ {no:'90',color:'#8e4fc4',x0:510,x1:6410,y0:1860,y1:2820,stops:12},
+ {no:'44',color:'#b84a4a',x0:2810,x1:4610,y0:430,y1:1380,stops:7},
+ {no:'12',color:'#c4467e',x0:4610,x1:7010,y0:430,y1:1860,stops:8},
+ {no:'101',color:'#4d8f3c',x0:2810,x1:7010,y0:2820,y1:4740,stops:12},
+ {no:'33',color:'#7a6a4f',x0:510,x1:2810,y0:3300,y1:5220,stops:10}
+];
+const snapTo=(arr,v)=>arr.reduce((b,c)=>Math.abs(c-v)<Math.abs(b-v)?c:b,arr[0]);
+BUS_LINES.forEach(L=>{L.x0=snapTo(VCENTER,L.x0*SC);L.x1=snapTo(VCENTER,L.x1*SC);L.y0=snapTo(HCENTER,L.y0*SC);L.y1=snapTo(HCENTER,L.y1*SC)});
+const busStops=[],buses=[];
+(function buildBus(){
+  const shelterFree=(r)=>!buildings.some(b=>r.x<b.x+b.w+8&&r.x+r.w>b.x-8&&r.y<b.y+b.h+8&&r.y+r.h>b.y-8)&&!places.some(q=>q.solid!==false&&r.x<q.x+q.w+8&&r.x+r.w>q.x-8&&r.y<q.y+q.h+8&&r.y+r.h>q.y-8)&&!busStops.some(o=>Math.abs(o.sx-(r.x+r.w/2))<90&&Math.abs(o.sy-(r.y+r.h/2))<90);
+  const onRoad=(r,own)=>roads.some(q=>q!==own&&r.x<q.x+q.w&&r.x+r.w>q.x&&r.y<q.y+q.h&&r.y+r.h>q.y);
+  for(const L of BUS_LINES){
+    const lx0=L.x0-LANE,lx1=L.x1+LANE,ly0=L.y0-LANE,ly1=L.y1+LANE;
+    // counter-clockwise on screen, right-hand traffic: top westbound, left southbound, bottom eastbound, right northbound
+    const pts=[[lx1,ly0],[lx0,ly0],[lx0,ly1],[lx1,ly1],[lx1,ly0]];
+    const segs=[];let total=0;
+    for(let i=0;i<4;i++){const [ax,ay]=pts[i],[bx,by]=pts[i+1],len=Math.hypot(bx-ax,by-ay),dx=(bx-ax)/len,dy=(by-ay)/len;segs.push({ax,ay,bx,by,len,dx,dy,start:total,ang:Math.atan2(dy,dx),ox:-dy,oy:dx});total+=len}
+    L.segs=segs;L.total=total;
+    const at=d=>{d=((d%total)+total)%total;for(const sg of segs)if(d<=sg.start+sg.len)return{x:sg.ax+sg.dx*(d-sg.start),y:sg.ay+sg.dy*(d-sg.start),ang:sg.ang,sg,off:d-sg.start};return null};
+    L.at=at;L.stopList=[];
+    for(let k=0;k<L.stops;k++){
+      const base=total*(k+.5)/L.stops;let placed=null;
+      for(let step=0;step<=14&&!placed;step++)for(const sign of step?[1,-1]:[1]){
+        const d=base+sign*step*35,pt=at(d);if(!pt)continue;
+        if(pt.off<170||pt.sg.len-pt.off<170)continue;
+        const sx=pt.x+pt.sg.ox*SHELTER_OUT,sy=pt.y+pt.sg.oy*SHELTER_OUT,r={x:sx-24,y:sy-13,w:48,h:26};
+        const own=roads.find(q=>sx>q.x&&sx<q.x+q.w&&sy>q.y&&sy<q.y+q.h);
+        if(!shelterFree(r))continue;
+        // keep shelters on the sidewalk strip beside the road, not inside a crossing road
+        if(roads.some(q=>r.x<q.x+q.w&&r.x+r.w>q.x&&r.y<q.y+q.h&&r.y+r.h>q.y&&((pt.sg.dx&&q.w<q.h)||(pt.sg.dy&&q.h<q.w))))continue;
+        placed={d,pt,sx,sy};
+      }
+      if(!placed)continue;
+      let near=null,nd=1e9;for(const q of places){if(q.id==='busStation'&&false)continue;const dd=Math.hypot(q.x+q.w/2-placed.sx,q.y+q.h/2-placed.sy);if(dd<nd){nd=dd;near=q}}
+      const name=near&&nd<330?near.name:'שכונה '+(busStops.length+1);
+      const stop={line:L,no:L.no,name,dist:placed.d,sx:placed.sx,sy:placed.sy,lx:placed.pt.x,ly:placed.pt.y,ang:placed.pt.ang,ox:placed.pt.sg.ox,oy:placed.pt.sg.oy,idx:L.stopList.length};
+      L.stopList.push(stop);busStops.push(stop);
+    }
+    L.stopList.sort((a,b)=>a.dist-b.dist);L.stopList.forEach((st,i)=>st.idx=i);
+    L.period=total/BUS_SPEED+L.stopList.length*BUS_DWELL;
+    for(let b=0;b<2+(total>9000?1:0);b++)buses.push({line:L,phase:L.period*b/(2+(total>9000?1:0))});
+  }
+})();
+// state of a bus at wall-clock ms: {x,y,ang,stopped:-1|stopIndex,leftIn,dist}
+function busState(bus,now=Date.now()){
+  const L=bus.line,list=L.stopList,P=L.period;let u=((now/1000+bus.phase)%P+P)%P,dist;
+  for(let k=0;k<list.length;k++){
+    const arrive=list[k].dist/BUS_SPEED+k*BUS_DWELL;
+    if(u<arrive){dist=(u-k*BUS_DWELL)*BUS_SPEED;const pt=L.at(dist);return{x:pt.x,y:pt.y,ang:pt.ang,stopped:-1,dist}}
+    if(u<arrive+BUS_DWELL){const pt=L.at(list[k].dist);return{x:pt.x,y:pt.y,ang:pt.ang,stopped:k,leftIn:arrive+BUS_DWELL-u,dist:list[k].dist}}
+  }
+  dist=(u-list.length*BUS_DWELL)*BUS_SPEED;const pt=L.at(dist);return{x:pt.x,y:pt.y,ang:pt.ang,stopped:-1,dist};
+}
+// seconds until a bus of the stop's line is next at that stop (0 when one is boarding now)
+function nextBusAt(stop,now=Date.now()){
+  const L=stop.line;let best=1e9,waiting=null;
+  for(const bus of buses){if(bus.line!==L)continue;const st=busState(bus,now);if(st.stopped===stop.idx){return{wait:0,bus,leftIn:st.leftIn}}
+    const a=stop.dist/BUS_SPEED+stop.idx*BUS_DWELL,u=((now/1000+bus.phase)%L.period+L.period)%L.period;let w=a-u;if(w<0)w+=L.period;if(w<best)best=w}
+  return{wait:best,bus:null}
+}
+let ride=null;
+function nearBusStop(){let best=null,bd=95;for(const st of busStops){const d=Math.hypot(player.x-st.sx,player.y-st.sy);if(d<bd){bd=d;best=st}}return best}
+function boardBus(stop,validate=true){if(shift){toast('אתה באמצע משמרת');return}
+  const n=nextBusAt(stop);
+  if(n.wait>0){toast('🚏 קו '+stop.no+' יגיע לתחנה '+stop.name+' בעוד '+Math.ceil(n.wait)+' שניות');return}
+  if(validate===null){openModal('🚌 עלייה לקו '+stop.no,'בחר איך לעלות לאוטובוס בתחנת '+stop.name+'.',[{title:'🎫 לתקף כרטיס · ₪15',sub:'נסיעה תקינה',cooldownMs:0,run:()=>boardBus(stop,true)},{title:'🚫 לעלות בלי לתקף',sub:'פעולה במשחק שעלולה להוסיף רמת מבוקש',cooldownMs:0,run:()=>boardBus(stop,false)}]);return}
+  if(validate&&!payWith(BUS_FARE,'כרטיס אוטובוס'))return;
+  if(!validate){wanted=Math.min(5,wanted+1);lastCrime=Date.now();updateHud();toast('⚠️ עלית בלי לתקף. אם פקח יבחין בכך, ייתכן שתקבל קנס.');}
+  ride={bus:n.bus,line:stop.line};player.moving=false;
+  toast('🚌 עלית על קו '+stop.no+'. אפשר לרדת רק כשהאוטובוס בתחנה — לחץ E');
+  if(state.storyStep===4&&stop.no==='5')progressStory(4,5,75,15,'הנהג מסר לך שהמאפייה מחפשת שליח');
+  updateHud();syncProfile();
+}
+function nextStopOf(bus){const st=busState(bus),list=bus.line.stopList;for(let k=0;k<list.length;k++)if(list[k].dist>st.dist+1||st.stopped===k&&false)return list[k];return list[0]}
+function leaveBus(){
+  if(!ride)return;const st=busState(ride.bus);
+  if(st.stopped<0){const nxt=nextStopOf(ride.bus);toast('🚌 הדלתות סגורות — התחנה הבאה: '+nxt.name);return}
+  const stop=ride.line.stopList[st.stopped];player.x=stop.sx+stop.ox*22;player.y=stop.sy+stop.oy*22;ride=null;toast('ירדת בתחנה: '+stop.name+' 🚏');syncProfile();
+}
+// ===== Traffic: cars on every road =====
+const trafficDefs=[];
+(function(){const rnd=seeded(77),cols=['#d94f4f','#e4e9ed','#4e7ac7','#e0b84b','#3f9d6b','#b567c9'];
+ HROADS.forEach(([y,h],ri)=>{for(let k=0;k<4;k++){const east=k%2===0;trafficDefs.push({h:true,lane:y+h/2+(east?24:-24),dir:east?1:-1,speed:150+rnd()*60,phase:rnd()*WORLD.w,color:cols[Math.floor(rnd()*cols.length)]})}});
+ VROADS.forEach(([x,w],ci)=>{for(let k=0;k<3;k++){const south=k%2===0;trafficDefs.push({h:false,lane:x+w/2+(south?-22:22),dir:south?1:-1,speed:140+rnd()*60,phase:rnd()*WORLD.h,color:cols[Math.floor(rnd()*cols.length)]})}});
+})();
+// ===== Trees =====
+const trees=[];
+for(let i=0;i<1500;i++){let x=(i*197+83)%WORLD.w+((i*53)%40),y=(i*313+51)%WORLD.h+((i*29)%40);if(!roads.some(r=>x>r.x-18&&x<r.x+r.w+18&&y>r.y-18&&y<r.y+r.h+18)&&!buildings.some(b=>x>b.x-25&&x<b.x+b.w+25&&y>b.y-25&&y<b.y+b.h+25)&&!places.some(p=>x>p.x-25&&x<p.x+p.w+25&&y>p.y-25&&y<p.y+p.h+25)&&!busStops.some(b=>Math.abs(b.sx-x)<45&&Math.abs(b.sy-y)<40))trees.push({x,y,r:9+(i%7)})}
+(function(){const rnd=seeded(9);for(const z of blockZones){const n=z.type==='forest'?36:14;for(let i=0;i<n;i++){const x=z.x+50+rnd()*(z.w-100),y=z.y+50+rnd()*(z.h-100);if(!busStops.some(b=>Math.abs(b.sx-x)<50&&Math.abs(b.sy-y)<45))trees.push({x,y,r:11+Math.floor(rnd()*8)})}}})();
+const onRoad=(x,y,m=0)=>HROADS.some(([t,h])=>y>t-m&&y<t+h+m)||VROADS.some(([l,w])=>x>l-m&&x<l+w+m);
+const VEHICLE_SPEEDS={'ברגל':1,'קטנוע':1.7,'מכונית':2.5,'ספורט':3.4};
+let camX=0,camY=0;
+const SPAWN=(function(){const near=(x,y,m)=>buildings.some(b=>x>b.x-m&&x<b.x+b.w+m&&y>b.y-m&&y<b.y+b.h+m)||places.some(q=>x>q.x-m&&x<q.x+q.w+m&&y>q.y-m&&y<q.y+q.h+m);const cx=Math.round(1200*SC),cy=Math.round(1015*SC);for(let r=0;r<1400;r+=24)for(let k=0;k<(r?16:1);k++){const a=k*Math.PI/8,x=Math.round(cx+Math.cos(a)*r),y=Math.round(cy+Math.sin(a)*r);if(x>80&&y>80&&x<WORLD.w-80&&y<WORLD.h-80&&!near(x,y,46)&&!onRoad(x,y,50))return{x,y}}return{x:cx,y:cy}})();
+player.x=SPAWN.x;player.y=SPAWN.y;
+function randomOpenSpot(minR,maxR){for(let i=0;i<200;i++){const a=Math.random()*Math.PI*2,r=minR+Math.random()*(maxR-minR),x=Math.round(player.x+Math.cos(a)*r),y=Math.round(player.y+Math.sin(a)*r);if(x<60||y<60||x>WORLD.w-60||y>WORLD.h-60||onRoad(x,y,18))continue;if(buildings.some(b=>x>b.x-30&&x<b.x+b.w+30&&y>b.y-30&&y<b.y+b.h+30)||places.some(q=>x>q.x-30&&x<q.x+q.w+30&&y>q.y-30&&y<q.y+q.h+30))continue;return[x,y]}return[Math.round(player.x+300),Math.round(player.y+300)]}
+function save(){const left=(actionCooldowns.get('manual-save')||0)-Date.now();if(left>0){toast('⏳ השמירה הבאה בעוד '+Math.ceil(left/1000)+' שניות');return}actionCooldowns.set('manual-save',Date.now()+2000);try{localStorage.setItem('cashEmpireSaveV1',JSON.stringify({...state,player:{x:player.x,y:player.y}}));syncProfile();toast('ההתקדמות נשמרה בעיר ✓')}catch(e){toast('לא ניתן לשמור כרגע. אפשר להמשיך לשחק.')}}
+function load(){try{const raw=localStorage.getItem('cashEmpireSaveV1');if(!raw)return;const d=JSON.parse(raw);for(const k of ['cash','bank','xp','level','storyStep','vehicle','vehicleSpeed','hasHouse','houseIncome','ownedCars'])if(d[k]!==undefined)state[k]=d[k];if(d.player&&Number.isFinite(d.player.x)&&Number.isFinite(d.player.y)){player.x=Math.max(20,Math.min(WORLD.w-20,d.player.x));player.y=Math.max(20,Math.min(WORLD.h-20,d.player.y))}}catch(e){console.warn('Save could not be loaded',e)}}
+function toast(msg,ms){msg=String(msg);const dur=Math.min(ms||99999,Math.min(6500,Math.max(3200,2200+msg.length*50)));let row=[...toastEl.children].find(r=>r.textContent===msg&&!r.classList.contains('out'));
+if(row){clearTimeout(row._t)}else{row=document.createElement('div');row.className='toastItem';row.textContent=msg;row.onclick=()=>{clearTimeout(row._t);row.remove()};toastEl.appendChild(row);while(toastEl.children.length>2)toastEl.firstChild.remove()}
+row._t=setTimeout(()=>{row.classList.add('out');setTimeout(()=>row.remove(),450)},dur)}
+function chatLine(text){const box=document.getElementById('chatLog'),row=document.createElement('div');row.textContent=text;box.appendChild(row);while(box.children.length>4)box.firstChild.remove();setTimeout(()=>row.remove(),14000)}
+function fmt(n){return '₪'+Math.floor(n).toLocaleString('en-US')}
+function updateHud(){updateCombatHud();cashEl.textContent=fmt(state.cash);bankEl.textContent=fmt(state.bank);levelEl.textContent=state.level;xpEl.textContent=state.xp;vehicleEl.textContent=state.vehicle;document.getElementById('energy').textContent=Math.floor(state.energy)+'%';updateQuest()}
+function updateQuest(){const goals=['גש לבית העירייה ובקש מראש העיר משימה.','גש למרכז העבודות, עבור ראיון עבודה והשלם משמרת אחת.','גש לארקייד ושחק באתגר אחד.','עצור בדוכן הפלאפל של שמעון ליד השוק.','עלה לקו 5 בתחנה המרכזית ונסה להגיע לטיילת.','בקר במאפייה של רחל וסגור את הסיפור!','הסיפור הושלם — עכשיו העיר כולה שלך 🐦'];const el=document.getElementById('questText');if(el)el.textContent=goals[Math.max(0,Math.min(3,state.storyStep))]}
+function progressStory(expected,next,reward,xp,message){if(state.storyStep!==expected)return;state.storyStep=next;state.cash+=reward;addXP(xp);toast(message+' · קיבלת ₪'+reward+' ו־'+xp+' XP 📜');syncProfile();updateQuest()}
+function addXP(n){state.xp+=n;while(state.xp>=state.level*100){state.xp-=state.level*100;state.level++;state.cash+=100;addTxn('בונוס עליית רמה',100);toast('עלית לרמה '+state.level+'! קיבלת ₪100 🎉')}updateHud()}
+function nearPlace(){let best=null,dist=Infinity;for(const p of places){const cx=p.x+p.w/2,cy=p.y+p.h/2,d=Math.hypot(player.x-cx,player.y-cy);if(d<Math.max(p.w,p.h)/2+48&&d<dist){best=p;dist=d}}return best}
+let promptSig='';
+function setPrompt(key,icon,title,sub){const sig=[key,icon,title,sub].join('|');promptEl.style.display='flex';if(sig===promptSig)return;promptSig=sig;promptEl.textContent='';const k=document.createElement('span');k.className='pk'+(key?'':' off');k.textContent=key||'•';const i=document.createElement('span');i.className='pi';i.textContent=icon;const t=document.createElement('span');t.className='pt';const bt=document.createElement('b');bt.textContent=title;t.appendChild(bt);if(sub){const sm=document.createElement('small');sm.textContent=sub;t.appendChild(sm)}promptEl.append(k,i,t)}
+function hidePrompt(){promptEl.style.display='none';promptSig=''}
+function showPrompt(){if(photoMode){hidePrompt();return}
+if(ride){const st=busState(ride.bus),list=ride.line.stopList;if(st.stopped>=0)setPrompt('E','🚌','קו '+ride.line.no+' · תחנת '+list[st.stopped].name,'לרדת מהאוטובוס · הדלתות נסגרות בעוד '+Math.ceil(st.leftIn)+' שנ׳');else setPrompt(null,'🚌','קו '+ride.line.no+' · בנסיעה','התחנה הבאה: '+nextStopOf(ride.bus).name);return}
+const p=nearPlace(),bs=nearBusStop();
+if(bs&&(!p||Math.hypot(player.x-bs.sx,player.y-bs.sy)<Math.hypot(player.x-(p.x+p.w/2),player.y-(p.y+p.h/2)))){const n=nextBusAt(bs);if(n.wait===0)setPrompt('E','🚌','עלה על קו '+bs.no,'תחנת '+bs.name+' · כרטיס '+fmt(BUS_FARE));else setPrompt(null,'🚏','תחנת '+bs.name,'קו '+bs.no+' מגיע בעוד '+Math.ceil(n.wait)+' שנ׳');return}
+if(p)setPrompt('E',p.emoji,p.name,p.desc||'לחץ כדי להיכנס');else hidePrompt()}
+function drawKeycap(x,y,label){const bob=Math.sin(Date.now()/260)*3,w=26,h=26,r=7,x0=x-w/2,y0=y-h/2+bob;ctx.save();ctx.fillStyle='#0006';ctx.beginPath();ctx.roundRect?ctx.roundRect(x0,y0+5,w,h,r):ctx.rect(x0,y0+5,w,h);ctx.fill();ctx.fillStyle='#8393ac';ctx.beginPath();ctx.roundRect?ctx.roundRect(x0,y0+3,w,h,r):ctx.rect(x0,y0+3,w,h);ctx.fill();ctx.fillStyle='#f4f7fb';ctx.beginPath();ctx.roundRect?ctx.roundRect(x0,y0,w,h,r):ctx.rect(x0,y0,w,h);ctx.fill();ctx.fillStyle='#16202f';ctx.font='800 15px system-ui,Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,x,y0+h/2+1);ctx.restore()}
+function actionCooldown(title,item){if(Number.isFinite(item.cooldownMs))return item.cooldownMs;if(title.includes('מרכז עבודות'))return 7000;if(title.includes('מכון הכושר'))return 7000;if(title.includes('קפה השדרה'))return 5000;if(title.includes('בית העירייה'))return 5000;if(title.includes('ארקייד'))return 4000;if(title.includes('הפארק'))return 2500;if(title.includes('סוכנות רכבים'))return 2500;if(title.includes('סופרמרקט'))return 2000;if(title.includes('בנק'))return 1200;if(title.includes('נדרסת'))return 0;if(title.includes('סיפור'))return 0;if(title.includes('תפריט'))return 1000;return 1800}
+function actionCooldownKey(title,item){for(const [part,key] of [['מרכז עבודות','work-shift'],['מכון הכושר','gym'],['קפה השדרה','cafe'],['בית העירייה','cityhall'],['ארקייד','arcade'],['הפארק','park'],['סוכנות רכבים','dealer'],['סופרמרקט','shop'],['בנק','bank'],['תפריט','menu']])if(title.includes(part))return key;return title+':'+item.title}
+function openModal(title,desc,items){keys.clear();mobile.clear();player.moving=false;const isPhone=title.startsWith('📱 הטלפון שלי'),isUpdate=title.startsWith('🆕 מה חדש'),isWallet=title.startsWith('👛 הארנק');modal.classList.toggle('phone-mode',isPhone);modal.classList.toggle('update-mode',isUpdate);modal.classList.toggle('wallet-mode',isWallet);document.getElementById('modalTitle').textContent=title;document.getElementById('modalDesc').textContent=desc;const a=document.getElementById('modalActions');a.innerHTML='';for(const item of items){const b=document.createElement('button');b.className='action'+(isPhone?' phone-app':'');if(isPhone){const parts=item.title.split(' '),icon=document.createElement('span'),name=document.createElement('strong'),sub=document.createElement('span');icon.className='app-icon';icon.setAttribute('aria-hidden','true');icon.textContent=parts.shift()||'📱';name.textContent=parts.join(' ');sub.textContent=item.sub;b.append(icon,name,sub)}else{const name=document.createElement('strong'),sub=document.createElement('span');name.textContent=item.title;sub.textContent=item.sub;b.append(name,sub)}b.addEventListener('click',()=>{const key=actionCooldownKey(title,item),duration=actionCooldown(title,item),left=(actionCooldowns.get(key)||0)-Date.now();if(left>0){toast('⏳ רגע! אפשר שוב בעוד '+Math.ceil(left/1000)+' שניות');return}if(duration>0){actionCooldowns.set(key,Date.now()+duration);syncProfile()}item.run();updateHud();syncProfile();renderModalIfNeeded()});a.appendChild(b)}modal.style.display='flex'}
+function renderModalIfNeeded(){/* actions remain open so players can make multiple transactions */}
+function payWith(amount,what='הקנייה'){if(state.paymentMethod==='bank'){if(state.bank<amount){toast('אין מספיק כסף בבנק לתשלום');return false}state.bank-=amount;addTxn(what,-amount);toast('שולם מהבנק: '+fmt(amount));syncProfile();return true}if(state.paymentMethod==='card'){if(!state.creditCard){toast('צריך להנפיק כרטיס אשראי בארנק');return false}if(state.creditLimit-state.creditDebt<amount){toast('אין מספיק מסגרת אשראי. החזר חוב בארנק');return false}state.creditDebt+=amount;addTxn(what+' (אשראי)',-amount);toast('שולם בכרטיס • '+fmt(amount)+' · '+what);syncProfile();return true}if(state.cash<amount){toast('אין מספיק מזומן');return false}state.cash-=amount;addTxn(what,-amount);syncProfile();return true}
+// ===== Wallet: professional banking-style dashboard =====
+if(!Array.isArray(state.txns))state.txns=[];
+function addTxn(n,a,k){state.txns.unshift({t:Date.now(),n:String(n).slice(0,40),a:Math.round(a),k:k||(a>=0?'in':'out')});if(state.txns.length>12)state.txns.length=12}
+function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e}
+const agoText=t=>{const m=Math.floor((Date.now()-t)/60000);return m<1?'עכשיו':m<60?'לפני '+m+' דק׳':'לפני '+Math.floor(m/60)+' שע׳'};
+function openWallet(){
+ const chk=state.checks.reduce((a,c)=>a+c.amount,0),net=state.cash+state.bank+chk-state.creditDebt,again=()=>openWallet();
+ const actions=[
+  state.creditCard?{title:'↩️ החזר חוב · עד '+fmt(100),sub:'חוב נוכחי '+fmt(state.creditDebt),cooldownMs:0,run:()=>{const n=Math.min(100,state.creditDebt,state.cash);if(!n){toast('אין חוב או מזומן להחזר');return}state.cash-=n;state.creditDebt-=n;addTxn('החזר חוב אשראי',-n);toast('החזרת '+fmt(n));syncProfile();again()}}
+   :{title:'💳 הנפק City Card',sub:'כרטיס אשראי למשחק · מסגרת '+fmt(500),cooldownMs:0,run:()=>{state.creditCard=true;toast('כרטיס האשראי העירוני הופעל');syncProfile();again()}}];
+ openModal('👛 הארנק שלי','',actions);
+ const d=document.getElementById('modalDesc');d.replaceChildren();
+ const total=el('div','w-total'),tl=el('div');tl.append(el('small','','שווי נקי'),el('strong','',fmt(net)));const tr=el('small','','🔒 הכסף שלך מאובטח');total.append(tl,tr);
+ const bals=el('div','w-balances2'),method=state.paymentMethod;
+ for(const [label,val,key] of [['💵 מזומן',fmt(state.cash),'cash'],['🏦 חשבון בנק',fmt(state.bank),'bank'],['📄 צ׳קים לפדיון',state.checks.length?fmt(chk)+' · '+state.checks.length:'—','']]){const c=el('div','w-bal'+(key&&key===method?' sel':''));c.append(el('small','',label),el('strong','',val));bals.appendChild(c)}
+ let card;
+ if(state.creditCard){card=el('div','w-card');card.append(el('div','brand','CITY CARD'),el('div','chip'));const last4=String(1000+Math.abs([...(playerName||'x')].reduce((a,c)=>(a*31+c.charCodeAt(0))|0,7))%9000);card.append(el('div','num','••••  ••••  ••••  '+last4));const meta=el('div','meta');meta.append(el('span','',playerName||''),el('span','','פנוי '+fmt(state.creditLimit-state.creditDebt)+' מתוך '+fmt(state.creditLimit)));card.appendChild(meta);const bar=el('div','w-limit'),fill=el('i');const pct=Math.min(100,state.creditDebt/state.creditLimit*100);fill.style.width=pct+'%';fill.style.background=pct>80?'#ff6b6b':pct>50?'#f0c674':'#7ee787';bar.appendChild(fill);card.appendChild(bar)}
+ else{card=el('div','w-card off');card.append(el('div','','💳 אין כרטיס אשראי'),el('small','','אפשר להנפיק City Card בלחיצה על הכפתור למטה'))}
+ const segBox=el('div','w-segwrap');segBox.appendChild(el('small','w-lbl','אמצעי תשלום בחנויות'));const seg=el('div','w-seg');
+ for(const [k,t] of [['cash','💵 מזומן'],['bank','🏦 בנק'],['card','💳 אשראי']]){const b=el('button',k===method?'on':'',t);b.type='button';b.onclick=()=>{state.paymentMethod=k;syncProfile();again()};seg.appendChild(b)}segBox.appendChild(seg);
+ const tx=el('div','w-tx');tx.appendChild(el('h4','','פעולות אחרונות'));
+ if(!state.txns.length)tx.appendChild(el('div','w-row','עוד אין פעולות בחשבון'));
+ for(const t of state.txns.slice(0,6)){const row=el('div','w-row'),l=el('div'),sign=t.k==='in'?'+':t.k==='out'?'−':'',cls=t.k==='out'?'out':t.k==='in'?'in':t.k;l.append(document.createTextNode(t.n),el('small','',agoText(t.t)));row.append(l,el('b','a '+cls,(t.k==='chk'?'📄 ':sign)+fmt(Math.abs(t.a))));tx.appendChild(row)}
+ d.append(total,bals,card,segBox,tx)}
+function openWalletOld(){const method={cash:'מזומן',bank:'בנק',card:'אשראי'}[state.paymentMethod]||'מזומן';const actions=[{title:'💵 הפקדה לבנק · ₪100',sub:'',cooldownMs:0,run:()=>{const n=Math.min(100,state.cash);if(!n){toast('אין מזומן');return}state.cash-=n;state.bank+=n;syncProfile();openWallet()}},{title:'🏧 משיכה מהבנק · ₪100',sub:'',cooldownMs:0,run:()=>{const n=Math.min(100,state.bank);if(!n){toast('חשבון הבנק ריק');return}state.bank-=n;state.cash+=n;syncProfile();openWallet()}},{title:state.creditCard?'↩️ החזר חוב · עד ₪100':'💳 הנפקת City Card',sub:state.creditCard?'מסגרת ₪'+state.creditLimit+' · חוב '+fmt(state.creditDebt):'כרטיס משחק · מסגרת ₪500',cooldownMs:0,run:()=>{if(!state.creditCard){state.creditCard=true;toast('כרטיס האשראי העירוני הופעל')}else{const n=Math.min(100,state.creditDebt,state.cash);if(!n){toast('אין חוב או מזומן להחזר');return}state.cash-=n;state.creditDebt-=n;toast('החזרת '+fmt(n))}syncProfile();openWallet()}},{title:'💳 אמצעי תשלום: '+method,sub:'בחר מזומן, בנק או אשראי',cooldownMs:0,run:()=>openModal('💳 אמצעי תשלום','לתשלום בחנויות בעיר',[{title:'💵 מזומן',sub:'',cooldownMs:0,run:()=>{state.paymentMethod='cash';syncProfile();openWallet()}},{title:'🏦 בנק',sub:'',cooldownMs:0,run:()=>{state.paymentMethod='bank';syncProfile();openWallet()}},{title:'💳 אשראי',sub:'',cooldownMs:0,run:()=>{state.paymentMethod='card';syncProfile();openWallet()}}])}];openModal('👛 הארנק שלי','יתרות ואמצעי תשלום למשחק',actions);const d=document.getElementById('modalDesc');d.replaceChildren();const bill=document.createElement('div');bill.className='wallet-bill';bill.innerHTML='<span>CASH EMPIRE · שטר עירוני</span><strong></strong><small>מזומן זמין</small><i>₪</i>';bill.querySelector('strong').textContent=fmt(state.cash);const row=document.createElement('div');row.className='wallet-balances';for(const [label,value] of [['🏦 בחשבון',fmt(state.bank)],['💳 חוב אשראי',fmt(state.creditDebt)],['💸 מסגרת פנויה',fmt(state.creditCard?state.creditLimit-state.creditDebt:0)]]){const cell=document.createElement('div');cell.className='wallet-balance';const strong=document.createElement('strong');strong.textContent=value;const small=document.createElement('span');small.textContent=label;cell.append(strong,small);row.appendChild(cell)}const card=document.createElement('div');card.className='wallet-card';card.innerHTML='<span>CASH EMPIRE · CITY CARD</span><b>••••  ••••  ••••  2048</b><small>כרטיס אשראי במשחק · ללא תשלום אמיתי</small>';d.append(bill,row,card)}
+function closeModal(){if(player.dead)return;modal.style.display='none';keys.clear();mobile.clear();player.moving=false}document.getElementById('closeModal').onclick=closeModal;document.getElementById('phoneClose').onclick=closeModal;modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
+const updateHighlights=['🏢 הקמת חברה: פתח עסק בעיר, הרווח כסף במשמרות ושדרג את החברה.', '🎮 מתחם משחקים: אתגרי מיומנות עם פרסים קבועים, ללא הימורים או כסף אמיתי.', '🛍️ חנות קוסמטיקה: אביזרי דמות בדיוניים בלבד.', '🚓 ניידות משטרה: רכבי סיור מופיעים כשאתה מבוקש.','🌳 העיר נפתחה: כל השכונות, הבניינים והכבישים התרחקו זה מזה — הרבה יותר מקום, פחות צפיפות.','🔪 מערכת דקירות חדשה: קומבו של 3 מכות, קריטי, התחמקות עם Shift, קליק עכבר לכיוון, ושלוש סכינים עם טווח ומהירות שונים.','🥷 שודדים חכמים יותר: מתכוננים להכות (❗) ואפשר להתחמק, בורחים כשהם פצועים. שוטרים עוצרים בהדרגה ואפשר להימלט.','🕵️ כוכבי מבוקש רק כשיש עדים. אף אחד לא ראה? אין כוכבים.','🔐 קוד האבטחה מוצפן חזק יותר, עם נעילה אחרי 5 ניסיונות שגויים.','₪ כל המחירים והכסף במשחק עברו לשקלים.','👛 ארנק חדש בסגנון אפליקציית בנק: שווי נקי, יתרות, כרטיס אשראי, אמצעי תשלום ופעולות אחרונות.','🧹 הוסר חלון ההסברים מהמסך. את המקשים אפשר לראות בתפריט.','🛣️ כל המקומות הוזזו מהכביש, והולכי הרגל נשארים על המדרכות.','⌨️ כפתור E חדש בעיצוב מקצועי: מקש עם שם המקום והפעולה, ומקש מרחף מעל הבניין הקרוב.','🛒 הרבה יותר לעשות בחנויות: סופרמרקט עם תיק פריטים ומבצע יומי, שוק עם מיקוח ובגדים, קפה עם חידות ועיתון, מכון כושר עם כוח וסיבולת, פארק עם דיג ומקלט חיות, בית עם גינה ושינה, סוכנות עם שדרוג מנוע, וארקייד עם משחק זיכרון וקלפים.','🎒 תיק פריטים: אוכל מחזיר אנרגיה, תחבושות מחזירות חיים. לחץ H לעזרה ראשונה מהירה.','⚡ אנרגיה אמיתית: היא יורדת כשהולכים ברגל ועולה כשעומדים.','💼 מערכת עבודות חדשה: ראיון עבודה במרכז העבודות, משמרות אמיתיות במקום העבודה, דרגות וקידום.','📄 השכר מגיע בצ׳ק! פודים או מפקידים אותו בבנק.','📱 הטלפון נוקה: נשארו רק דברים שאפשר לעשות בטלפון אמיתי.','💬 ההודעות קטנות ושקטות יותר.','🔪 חנות סכינים חדשה: קונים סכין ולוחצים F כדי לדקור. תושבים נפגעים וברחו, והמשטרה מתחילה לחפש אותך.','❤️ מערכת חיים: רכבים ושודדים פוגעים בך (במקום מוות מיידי). החיים מתמלאים לאט, או בערכת עזרה ראשונה.','🚨 כוכבי מבוקש (עד 5): ככל שיותר כוכבים, יותר שוטרים רצים אחריך. אם נתפסים — קנס ושחרור מהתחנה.','🚓 כפתור משטרה ליד הטלפון: להתקשר כשיש שודד ולקבל ניידת. דיווח שווא עולה ₪30.','🚏 תחנות אוטובוס בכל העיר: מתקרבים לתחנה, לוחצים E ועולים על האוטובוס (כרטיס ₪15). לוחצים E שוב כדי לרדת כשהוא בתחנה.','🗺️ המפה גדלה פי 9! שכונות חדשות, פארקים, יערות, 8 קווי אוטובוס ומפה קטנה (M להסתרה).','🏎️ הרכבים מהירים בהרבה: קטנוע ×1.7, מכונית ×2.5, ספורט ×3.4. גם התנועה בכבישים מהירה יותר.','⏱️ הודעות נשארות הרבה יותר זמן על המסך, אפשר ללחוץ עליהן כדי לסגור.','📱 הטלפון הוסר מתפריט המשחק ונשאר רק הכפתור בצד.','👛 ארנק חדש ליד הטלפון: שטרות, יתרת בנק וכרטיס City Card מעוצב.','💳 בחרו אמצעי תשלום בחנויות: מזומן, כסף מהבנק או אשראי במשחק עם מסגרת והחזר חוב.','🧑‍🍳 שלוש עבודות חדשות: שליח אופניים, נהג אוטובוס ומשמרת בפלאפל — עם שכר וניסיון.','🇮🇱 עולם העיר קיבל עסקים מקומיים: פלאפל שמעון, מאפיית רחל ושוק העיר.','🚌 נוספו קווי אוטובוס 5, 18 ו־72 עם יעדים וכרטיס ב־₪15, לצד אוטובוסים שנוסעים בעיר.','📖 סיפור העיר הורחב למשימות בעסקים ובתחבורה הציבורית.','🚗 מהירות הנהיגה והתנועה בכביש עכשיו מתונה; הספרינט הוסר.','👥 אנשי קשר, הודעות פרטיות ובקשות שיחה פועלים בין שחקנים מחוברים.'];
+function showLatestUpdate(){try{localStorage.setItem(UPDATE_KEY,APP_VERSION)}catch{}openModal('🆕 מה חדש · עדכון '+APP_VERSION,'',[]);const desc=document.getElementById('modalDesc');for(const note of updateHighlights){const row=document.createElement('span');row.className='update-line';row.textContent=note;desc.appendChild(row)}}
+function showUpdateIfNew(){try{if(localStorage.getItem(UPDATE_KEY)!==APP_VERSION)showLatestUpdate()}catch{showLatestUpdate()}}
+function showIntroStory(showUpdateAfter=false){openModal('📖 סיפור: היונה וראש העיר','הגעת לעיר ישראלית עם ₪500 ומזוודה. ראש העיר איבד את המפתח, היונה פתחה חוב בפלאפל שמעון, קו 5 מחפש נוסעים והמאפייה צריכה שליח. השלם את סיפור העיר, תעבוד בעסקים, סע באוטובוס ותציל את העיר מוועדת היונים. 🐦🏙️',[{title:'🌆 יוצאים להרפתקה!',sub:'התחל את סיפור העיר',cooldownMs:0,run:()=>{socket.emit('story:seen');closeModal();if(showUpdateAfter)showUpdateIfNew();else toast('היונה אומרת: אין עמלה על המשימה הראשונה!')}}])}
+function showSkinDesigner(){const choose=(part,label,options)=>options.map(([name,color])=>({title:label+': '+name,sub:'החל שינוי בדמות',cooldownMs:0,run:()=>{state.skin[part]=color;updateHud();syncProfile();toast('הלוק החדש נשמר ✨')}}));const items=[...choose('shirt','👕 חולצה',[['כחול','#2675c8'],['אדום','#e44b59'],['ירוק','#33a878'],['סגול','#9656cf'],['כתום','#ef9d32'],['טורקיז','#35b8b2'],['שמנת','#f2e6d0']]),...choose('tone','🙂 גוון עור',[['בהיר','#f2c7a4'],['שזוף','#d99e72'],['חום','#a96f4f'],['כהה','#704532']]),...choose('hair','💇 שיער',[['חום','#3b2a24'],['שחור','#141414'],['בלונדיני','#d8a53e'],['ג׳ינג׳י','#a74435'],['כסוף','#e6dfd2']])];openModal('🎨 סטודיו לעיצוב דמות','בחר צבעים לדמות שלך. העיצוב נשמר בפרופיל ויופיע גם לשחקנים האחרים.',items)}
+function rewardActivity(key,cash,xp,message){state.activities[key]=(state.activities[key]||0)+1;state.cash+=cash;if(cash>0)addTxn(message,cash);addXP(xp);const goals=[['שליח',state.activities.delivery>=3],['דייג',state.activities.fishing>=5],['ספורטאי',state.activities.parkour>=3],['נדבן',state.activities.cleanup>=5],['סייר',state.activities.treasure>=3]];for(const [badge,earned] of goals)if(earned&&!state.achievements.includes(badge)){state.achievements.push(badge);toast('🏅 הישג חדש: '+badge+'!')}toast(message+' · '+fmt(cash)+' · +'+xp+' XP');syncProfile()}
+function savedPhoneContacts(){try{return JSON.parse(localStorage.getItem('cashEmpireContacts')||'[]')}catch{return []}}
+function savePhoneContact(name){const list=savedPhoneContacts();if(name&&name!==playerName&&!list.includes(name)){list.unshift(name);localStorage.setItem('cashEmpireContacts',JSON.stringify(list.slice(0,50)))} }
+function phoneContactCard(name){const online=[...remotePlayers.values()].some(p=>p.name===name);savePhoneContact(name);openModal('👤 '+name,online?'מחובר עכשיו לעיר · אפשר לשלוח הודעה או להתקשר.':'לא מחובר כרגע · נשמר באנשי הקשר שלך.',[{title:'💬 הודעה חדשה',sub:'שלח הודעה פרטית לשחקן',cooldownMs:0,run:()=>{const text=prompt('הודעה ל־'+name+':');if(text?.trim()){socket.emit('phone:message',{to:name,text:text.trim()});toast('שולח הודעה…')}}},{title:'📞 להתקשר',sub:'שלח בקשת שיחה במשחק',cooldownMs:0,run:()=>socket.emit('phone:call',{to:name})},{title:'🗨️ שיחה קודמת',sub:'הצג את ההודעות האחרונות ביניכם',cooldownMs:0,run:()=>{const history=(window.phoneMessages||[]).filter(m=>(m.from===name&&m.to===playerName)||(m.to===name&&m.from===playerName)).slice(0,12).reverse();openModal('💬 צ׳אט עם '+name,history.map(m=>(m.from===playerName?'את/ה':'הוא/היא')+': '+m.text).join('\n')||'עדיין אין הודעות בשיחה.',[{title:'✏️ כתיבת הודעה',sub:'שלח הודעה פרטית חדשה',cooldownMs:0,run:()=>{const text=prompt('הודעה ל־'+name+':');if(text?.trim())socket.emit('phone:message',{to:name,text:text.trim()})}}])}}])}
+function showBusRoutes(){if(ride){toast('אתה כבר באוטובוס');return}const lines=[{no:'5',from:'תחנה מרכזית',to:'שוק העיר',at:'market'},{no:'18',from:'פלאפל שמעון',to:'מאפיית רחל',at:'bakery'},{no:'72',from:'שוק העיר',to:'תחנה מרכזית',at:'busStation'}];openModal('🚌 קווי האוטובוס בעיר','בחר קו ותחנת יעד. כרטיס עולה ₪15; הנהג מחכה רק 3 שניות (הוא כבר מאחר).',lines.map(line=>({title:'קו '+line.no+' · '+line.from+' → '+line.to,sub:'נסיעה · ₪15',cooldownMs:0,run:()=>{if(state.cash<15){toast('כרטיס עולה ₪15');return}state.cash-=15;const pl=places.find(q=>q.id===line.at);player.x=pl.x+pl.w/2;player.y=pl.y+pl.h+26;state.vehicle='ברגל';state.vehicleSpeed=1;syncProfile();toast('קו '+line.no+' הגיע ליעד: '+line.to+' 🚌');if(state.storyStep===4&&line.no==='5')progressStory(4,5,75,15,'הנהג מסר לך שהמאפייה מחפשת שליח')}})))}
+function showPhoneContacts(){const online=[...remotePlayers.values()].map(p=>p.name);online.forEach(savePhoneContact);const names=[...new Set([...online,...savedPhoneContacts()])];if(!names.length){openModal('👥 אנשי קשר','עוד אין שחקנים אחרים בעיר. כשהם יתחברו, הם יופיעו כאן ותוכלו לשוחח.',[{title:'🔄 רענון אנשי קשר',sub:'בדוק מי מחובר עכשיו',cooldownMs:0,run:showPhoneContacts}]);return}openModal('👥 אנשי קשר',`${online.length} מחוברים עכשיו · ${names.length} באנשי הקשר`,names.map(name=>({title:(online.includes(name)?'🟢 ':'⚪ ')+name,sub:online.includes(name)?'מחובר · הודעה או שיחה':'לא מחובר · נשמר באנשי קשר',cooldownMs:0,run:()=>phoneContactCard(name)})))}
+function showPhoneMessages(){const list=window.phoneMessages||[];const peers=[...new Set(list.flatMap(m=>[m.from,m.to]).filter(n=>n&&n!==playerName))];openModal('💬 הודעות',list.length?`הודעות אחרונות · ${list.length}`:'אין הודעות עדיין. בחר איש קשר כדי להתחיל שיחה.',[...peers.map(name=>({title:'💬 '+name,sub:'פתח שיחה ושלח הודעה',cooldownMs:0,run:()=>phoneContactCard(name)})),{title:'✏️ הודעה חדשה',sub:'בחר שחקן מחובר',cooldownMs:0,run:showPhoneContacts}])}
+function showPhoneCalls(){const online=[...remotePlayers.values()];openModal('📞 שיחות',online.length?'התקשר לשחקן מחובר. השיחה שולחת בקשת מענה בתוך המשחק.':'אין כרגע שחקנים זמינים לשיחה.',online.map(p=>({title:'📞 '+p.name,sub:'התקשר עכשיו',cooldownMs:0,run:()=>socket.emit('phone:call',{to:p.name})})))}function showFeatureHub(){
+ const items=[
+ {title:'💳 ארנק אישי',sub:'שטרות, בנק, כרטיס אשראי ואמצעי תשלום',cooldownMs:0,run:openWallet},
+ {title:'👥 אנשי קשר',sub:'אנשים בעיר · סטטוס מחובר ושמירת קשרים',cooldownMs:0,run:showPhoneContacts},
+ {title:'💬 הודעות',sub:'שיחות פרטיות והודעות נכנסות',cooldownMs:0,run:showPhoneMessages},
+ {title:'📞 שיחות',sub:'התקשר לשחקן מחובר וקבל מענה',cooldownMs:0,run:showPhoneCalls},
+ {title:'🚓 משטרה · 100',sub:'דווח על שודד או אירוע',cooldownMs:0,run:callPolice},
+ {title:'🚌 Moovit · תחבורה ציבורית',sub:'מסלולי אוטובוס ומשתמשים בתחבורה ציבורית',cooldownMs:0,run:()=>openModal('🚌 Moovit · מסלולים','אפשר לתכנן מסלול בתחבורה ציבורית באתר Moovit. בתוך המשחק: קווי האוטובוס פועלים לפי לוחות זמנים ותחנות.',[{title:'🌐 פתיחת Moovit',sub:'מעבר לאתר Moovit',cooldownMs:0,run:()=>window.open('https://moovitapp.com/','_blank','noopener')},{title:'🗺️ קווי האוטובוס במשחק',sub:'מסלולים ותחנות בעיר',cooldownMs:0,run:showBusRoutes}])},
+ {title:'🏅 אלבום הישגים',sub:'בדוק מדליות ואבני דרך',run:()=>openModal('🏅 אלבום הישגים',`הישגים: ${state.achievements.length}/5 · שליחויות ${state.activities.delivery||0} · דיג ${state.activities.fishing||0} · פארקור ${state.activities.parkour||0} · ניקיון ${state.activities.cleanup||0} · אוצרות ${state.activities.treasure||0}`,[{title:'🏅 '+(state.achievements.join(' · ')||'עוד אין מדליות'),sub:'צא לפעילויות בעיר כדי לזכות במדליות',cooldownMs:0,run:()=>{}}])},
+ {title:'🏆 דירוג העיר',sub:'מי הכי עשיר בעיר?',run:()=>socket.emit('leaderboard:request')},
+ {title:'📸 מצב צילום',sub:'הסתר ממשק כדי לצלם את העיר',run:()=>{photoMode=!photoMode;document.querySelectorAll('.hud,#questCard,#menuBtn,#phoneBtn,#connection,#chatLog,#minimap').forEach(el=>el.style.visibility=photoMode?'hidden':'visible');closeModal();toast(photoMode?'מצב צילום פעיל — לחץ P לחזרה':'יצאת ממצב צילום')}},
+ {title:'🎵 צלילי אווירה',sub:'הפעל או כבה צליל רקע עדין',run:()=>{if(ambientTimer){clearInterval(ambientTimer);ambientTimer=null;toast('צלילי האווירה כובו');return}try{audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();const chime=()=>{if(!audioContext)return;const o=audioContext.createOscillator(),g=audioContext.createGain();o.frequency.value=220+Math.random()*220;g.gain.value=.018;o.connect(g);g.connect(audioContext.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,audioContext.currentTime+.35);o.stop(audioContext.currentTime+.36)};ambientTimer=setInterval(chime,8000);chime();toast('צלילי אווירה פועלים 🎵')}catch{toast('הדפדפן לא מאפשר שמע כרגע')}}},
+ {title:'🧠 חידון העיר',sub:'ענה נכון וקבל פרס כספי',run:()=>{const q=[['מה עושים בבנק?','מפקידים כסף'],['איזה כפתור מפעיל מקומות?','E'],['מה היונה גנבה לראש העיר?','מפתח'],['איפה אפשר לנוח בחינם?','בפארק']][Math.floor(Math.random()*4)];openModal('🧠 חידון העיר',q[0],[{title:'✅ '+q[1],sub:'בחר תשובה',cooldownMs:0,run:()=>rewardActivity('trivia',45,12,'תשובה נכונה!')},{title:'🐦 היונה',sub:'תשובה מפתיעה',cooldownMs:0,run:()=>toast('היונה אומרת: כמעט! נסה שוב בפעם הבאה')}])}},
+ {title:'📣 לוח מודעות עירוני',sub:'שלח הודעה קצרה לכל מי שמחובר',run:()=>{const message=prompt('מה לפרסם בלוח העירוני? (עד 80 תווים)');if(message)socket.emit('city:bulletin',message.slice(0,80))}},
+ {title:'🆕 מה חדש',sub:'כל מה שנוסף בעדכון האחרון',run:showLatestUpdate},
+ {title:'🎒 התיק שלי',sub:'אוכל, תחבושות, רכבים וקלפים',run:showBag},
+ {title:'🗺️ ניווט בעיר',sub:'בחר יעד והסמן יופיע בעולם',run:()=>openModal('🗺️ ניווט בעיר','בחר מקום. סמן הכוונה יופיע על המפה.',places.map(p=>({title:p.emoji+' '+p.name,sub:p.desc,cooldownMs:0,run:()=>{waypoint={x:p.x+p.w/2,y:p.y+p.h/2,name:p.name};closeModal();toast('📍 סימנתי את '+p.name+' במפה')}})))},
+ {title:'📬 הודעות העיר',sub:'הודעות צ׳אט ועדכונים אחרונים',run:()=>openModal('📬 הודעות העיר',cityMessages.length?cityMessages.slice(0,10).join('\n'):'עדיין אין הודעות. אפשר לשלוח הודעה מתפריט המשחק.',[])},
+ {title:'🛡️ ביטוח נסיעה',sub:state.activities.insured?'הביטוח שלך פעיל':'הגן על ₪200 במקרה תאונה · ₪80',run:()=>{if(state.activities.insured){toast('הביטוח כבר פעיל עד התאונה הבאה 🛡️');return}if(state.cash<80){toast('הביטוח עולה ₪80');return}state.cash-=80;state.activities.insured=1;toast('הביטוח הופעל — הנזק מתאונת רכב מכוסה 🛡️')}},
+ {title:'🎁 מתנה יומית',sub:'קבל ₪250 ו־25 XP פעם ביום',run:()=>socket.emit('daily:claim')},
+ {title:'🎨 סטודיו לדמות',sub:'עצב שיער, חולצה וגוון עור',run:showSkinDesigner},
+ {title:'📡 מצב העיר',sub:'שחקנים, מזג אוויר והחיבור שלך',run:()=>openModal('📡 מצב העיר',`🌐 תושבים מחוברים: ${document.getElementById('onlineCount').textContent}\n🌦️ מזג אוויר: ${currentWeather}\n📍 מיקום: ${Math.round(player.x)}, ${Math.round(player.y)}\n🔌 חיבור: ${socket.connected?'מחובר':'מתחבר מחדש'}`,[])},
+ ];
+ 
+ // v1.18: companies, entertainment arcade, and a fictional convenience shop.
+ items.push({
+  title:'🏢 הקמת חברה',
+  sub:'פתח עסק משלך, בחר תחום והעסק ייצר הכנסה במשחק',
+  cooldownMs:0,
+  run:()=>{
+   const company=state.activities.companyData||null;
+   if(company){
+    openModal('🏢 '+company.name,'החברה שלך · '+company.type+'\nרמה '+company.level+' · הכנסה למשמרת: '+fmt(company.level*90)+'\nיתרת החברה: '+fmt(company.funds||0),[
+     {title:'🧑‍💼 לנהל משמרת · ₪'+company.level*90,sub:'הכנסה קבועה במשחק',cooldownMs:0,run:()=>{state.cash+=company.level*90;company.funds=(company.funds||0)+company.level*90;state.activities.companyData=company;addTxn('הכנסה מהחברה',company.level*90);addXP(8);syncProfile();toast('החברה הרוויחה '+fmt(company.level*90));}},
+     {title:'📈 לשדרג חברה · ₪'+(company.level*250),sub:'מגדיל את ההכנסה למשמרת',cooldownMs:0,run:()=>{const cost=company.level*250;if(state.cash<cost){toast('אין מספיק מזומן לשדרוג');return}state.cash-=cost;company.level++;state.activities.companyData=company;addTxn('שדרוג חברה',-cost);syncProfile();toast('החברה שודרגה לרמה '+company.level);}}
+    ]);return;
+   }
+   openModal('🏢 הקמת חברה','בחר תחום. החברה וההתקדמות נשמרות בפרופיל שלך. כל הפעילות היא בתוך עולם המשחק.',[
+    ...[['🚚 חברת שליחויות','שליחויות'],['🚗 חברת תחבורה','תחבורה'],['🏗️ חברת נדל״ן','נדל״ן'],['💻 חברת טכנולוגיה','טכנולוגיה']].map(([title,type])=>({title,sub:'עלות הקמה ₪500',cooldownMs:0,run:()=>{if(state.cash<500){toast('צריך ₪500 כדי להקים חברה');return}state.cash-=500;state.activities.companyData={name:title.replace(/^.{2} /,''),type,level:1,funds:0,createdAt:Date.now()};addTxn('הקמת חברה',-500);addXP(25);syncProfile();toast('הקמת '+title+' בהצלחה!');}}))
+   ]);
+  }
+ });
+ items.push({
+  title:'🎮 מתחם משחקים ופרסים',
+  sub:'מיני־משחקי מיומנות עם פרסים קבועים — בלי כסף אמיתי ובלי הימורים',
+  cooldownMs:0,
+  run:()=>openModal('🎮 מתחם משחקים','בחר אתגר מיומנות. הפרס ידוע מראש; אין הימור, רכישת צ׳יפים או כסף אמיתי.',[
+   {title:'🧠 חידת זריזות · פרס ₪40',sub:'פתור את החידה כדי לקבל פרס',cooldownMs:0,run:()=>{const a=2+Math.floor(Math.random()*8),b=3+Math.floor(Math.random()*8),answer=prompt('כמה זה '+a+' + '+b+'?');if(answer===null)return;if(Number(answer)===a+b){state.cash+=40;addTxn('פרס חידת זריזות',40);addXP(10);syncProfile();toast('נכון! קיבלת ₪40 🎉')}else toast('לא הפעם — נסה שוב בחידה הבאה.')}} ,
+   {title:'🎯 אתגר דיוק · פרס ₪25',sub:'בחר מספר בין 1 ל־3',cooldownMs:0,run:()=>{const n=1+Math.floor(Math.random()*3),answer=prompt('בחר מספר: 1, 2 או 3');if(answer===null)return;if(Number(answer)===n){state.cash+=25;addTxn('פרס אתגר דיוק',25);addXP(6);syncProfile();toast('פגעת בול! קיבלת ₪25 🎯')}else toast('המספר היה '+n+' — אין הפסד כספי באתגר.')}} ,
+   {title:'🃏 זיכרון קלפים · פרס ₪30',sub:'זכור את הרצף והקלד אותו בחזרה',cooldownMs:0,run:()=>{const seq=Array.from({length:3},()=>1+Math.floor(Math.random()*4)).join('');alert('זכור את הרצף: '+seq);const ans=prompt('הקלד את הרצף שראית');if(ans===seq){state.cash+=30;addTxn('פרס משחק זיכרון',30);addXP(8);syncProfile();toast('זיכרון מצוין! ₪30 נוספו לארנק')}else toast('כמעט! תוכל לנסות שוב בפעם הבאה.')}} 
+  ])
+ });
+ items.push({
+  title:'🛍️ חנות נוחות למבוגרים',
+  sub:'אביזרי דמות וקוסמטיקה בדיונית בלבד',
+  cooldownMs:0,
+  run:()=>openModal('🛍️ חנות נוחות','החנות מציגה פריטים קוסמטיים בלבד. אין צריכה או שימוש בחומרים, והפריטים לא משפרים יכולות.',[
+   {title:'🕶️ משקפי שמש · ₪60',sub:'פריט קוסמטי לדמות',cooldownMs:0,run:()=>{if((state.activities.cosmetics||[]).includes('sunglasses')){toast('כבר יש לך משקפי שמש');return}if(state.cash<60){toast('חסרים ₪60');return}state.cash-=60;state.activities.cosmetics=[...(state.activities.cosmetics||[]),'sunglasses'];addTxn('משקפי שמש קוסמטיים',-60);syncProfile();toast('קנית משקפי שמש קוסמטיים 🕶️')}},
+   {title:'🧢 כובע רחוב · ₪45',sub:'פריט קוסמטי לדמות',cooldownMs:0,run:()=>{if((state.activities.cosmetics||[]).includes('cap')){toast('כבר יש לך כובע');return}if(state.cash<45){toast('חסרים ₪45');return}state.cash-=45;state.activities.cosmetics=[...(state.activities.cosmetics||[]),'cap'];addTxn('כובע קוסמטי',-45);syncProfile();toast('קנית כובע רחוב 🧢')}},
+   {title:'🎒 תיק מעוצב · ₪80',sub:'פריט קוסמטי לדמות',cooldownMs:0,run:()=>{if((state.activities.cosmetics||[]).includes('bag')){toast('כבר יש לך תיק');return}if(state.cash<80){toast('חסרים ₪80');return}state.cash-=80;state.activities.cosmetics=[...(state.activities.cosmetics||[]),'bag'];addTxn('תיק קוסמטי',-80);syncProfile();toast('קנית תיק מעוצב 🎒')}}
+  ])
+ });
+
+ items.push({
+  title:'📈 שוק המניות',
+  sub:'קנה ומכור מניות דמיוניות בכסף של המשחק',
+  cooldownMs:0,
+  run:()=>{
+   const catalog=[
+    {id:'metro',name:'Metro Motors',emoji:'🚗',base:120},
+    {id:'byte',name:'ByteTech',emoji:'💻',base:180},
+    {id:'green',name:'Green Energy',emoji:'🌱',base:95},
+    {id:'sky',name:'Skyline Realty',emoji:'🏙️',base:150}
+   ];
+   const book=state.activities.stockMarket||(state.activities.stockMarket={prices:{},holdings:{}});
+   catalog.forEach(c=>{if(!book.prices[c.id])book.prices[c.id]=c.base});
+   const options=catalog.map(c=>({title:c.emoji+' '+c.name+' · ₪'+book.prices[c.id]+' למניה',sub:'בבעלותך: '+(book.holdings[c.id]||0)+' מניות',cooldownMs:0,run:()=>{
+    const price=book.prices[c.id],owned=book.holdings[c.id]||0;
+    openModal(c.name,'מחיר נוכחי: ₪'+price+' למניה\nבבעלותך: '+owned+' מניות\nהמחיר משתנה לאחר כל פעולה. אין כאן כסף אמיתי.',[
+     {title:'🟢 לקנות מניה · ₪'+price,sub:'רכישה בכסף של המשחק',cooldownMs:0,run:()=>{if(state.cash<price){toast('אין מספיק כסף לקנייה');return}state.cash-=price;book.holdings[c.id]=(book.holdings[c.id]||0)+1;book.prices[c.id]=Math.max(20,Math.round(price*(0.88+Math.random()*0.26)));state.activities.stockMarket=book;addTxn('קניית מניית '+c.name,-price);syncProfile();toast('קנית מניה של '+c.name);}},
+     {title:'🔴 למכור מניה · ₪'+price,sub:'מכירת מניה אחת מהתיק',cooldownMs:0,run:()=>{if(!(book.holdings[c.id]>0)){toast('אין לך מניות למכירה');return}state.cash+=price;book.holdings[c.id]--;book.prices[c.id]=Math.max(20,Math.round(price*(0.88+Math.random()*0.26)));state.activities.stockMarket=book;addTxn('מכירת מניית '+c.name,price);syncProfile();toast('מכרת מניה של '+c.name+' במחיר ₪'+price);}},
+     {title:'↩️ חזרה לשוק',sub:'',cooldownMs:0,run:()=>{state.activities.stockMarket=book;showFeatureHub()}}
+    ])
+   }}));
+   const total=catalog.reduce((sum,c)=>sum+(book.holdings[c.id]||0)*book.prices[c.id],0);
+   openModal('📈 שוק המניות','שווי תיק נוכחי: ₪'+total+'\nהמחירים משתנים כשקונים או מוכרים. מסחר וירטואלי בלבד.',options);
+  }
+ });
+ items.splice(0,items.length,...items.filter(it=>!/^(🏅|🏆|🧠|✅|🐦|📣|📡|🆕|👥|📞)/.test(it.title)));items.push({title:'📹 שיחת וידאו',sub:'שיחה עם חבר דרך המצלמה',cooldownMs:0,run:showVideoCall});window.__cashEmpireFeatureCount=items.length;openModal('📱 הטלפון שלי · '+items.length+' אפליקציות','ברוך הבא ל־City OS. פתח אפליקציה, בחר פעילות וחזור לעיר בלחיצה אחת.',items)
+}
+function usePlace(p,skipWork){if(!p)return;
+ if(!skipWork&&state.job&&JOBS[state.job.id].place===p.id&&p.id!=='job'&&!shift){showWorkMenu(p);return}
+ if(p.id==='job'){showJobCenter();return}
+ if(p.id==='bank'){showBank();return}
+ if(PLACE_MENUS[p.id]){PLACE_MENUS[p.id](p);return}
+ if(p.id==='knives'){showKnifeShop();return}if(p.id==='police'){showPoliceStation();return}
+ if(p.id==='cityhall'){openModal('🏛️ בית העירייה','ראש העיר קיבל אתכם לעבודה. הוא מבקש להשיב מפתח אבוד, אך קודם צריך להכיר את העיר.',[
+ {title:'🗝️ לדבר עם ראש העיר',sub:'התחל את הסיפור וקבל משימה',run:()=>{if(state.storyStep===0)progressStory(0,1,120,15,'מצאת את המפתח מתחת לכובע של היונה. עכשיו לך לעבוד');else toast('ראש העיר אומר: קודם תעשה משמרת, אחר כך נדבר על היונה.')}} ,
+ {title:'🧹 לסדר את העירייה',sub:'עזרה קטנה · +8 XP',run:()=>{addXP(8);toast('סידרת את הטפסים. היונה הגישה בקשה להנחה בארנונה')}}
+ ]);return}
+ if(p.id==='arcade'){openModal('🕹️ ארקייד פיקסל','שלוש הזדמנויות להוכיח שהיונה לא באמת אלופת העולם.',[
+ {title:'🎮 אתגר מכונת הפרסים · ₪20',sub:'זכייה: ₪100 ו־15 XP · הפסד: עידוד מהיונה',run:()=>{if(state.cash<20){toast('חסרים לך ₪20 למשחק');return}state.cash-=20;if(Math.random()<.55){state.cash+=100;addXP(15);toast('ניצחת! היונה דורשת משחק חוזר 🏆')}else toast('כמעט! היונה חגגה מוקדם מדי 🐦')}},
+ {title:'📜 משימת הסיפור',sub:'עזור לראש העיר לנצח את היונה',run:()=>{if(state.storyStep===2)progressStory(2,3,250,35,'ניצחת את היונה בגמר הארקייד! ראש העיר שולח אותך להכיר את עסקי העיר');else if(state.storyStep>=6)toast('הסיפור הושלם! היונה עובדת עכשיו בדוכן פופקורן 🍿');else toast('קודם צריך לקחת משימה בבית העירייה ולבצע משמרת')}} ,
+ {title:'🕺 ריקוד ניצחון',sub:'בחינם · כולם רואים את האימוג׳י',run:()=>{socket.emit('emote','רוקד בארקייד 🕺');addXP(3)}}
+ ]);return}
+ if(p.id==='dealer'){openModal('🚗 סוכנות רכבים','קנה רכב כדי לזוז מהר יותר. רכב שכבר קנית אפשר לבחור שוב בחינם.',[
+ {title:'🛵 קטנוע · ₪600',sub:'מהירות ×1.7 — כמעט כפול מהליכה',run:()=>buyCar('קטנוע',600,1.7)},
+ {title:'🚗 מכונית · ₪1,500',sub:'מהירות ×2.5 — טסים על הכביש',run:()=>buyCar('מכונית',1500,2.5)},
+ {title:'🏎️ מכונית ספורט · ₪4,000',sub:'מהירות ×3.4 — הכי מהיר בעיר',run:()=>buyCar('ספורט',4000,3.4)},
+ {title:'🚶 לצאת מהרכב',sub:'לחזור להליכה',run:()=>{state.vehicle='ברגל';state.vehicleSpeed=1;toast('יצאת מהרכב')}}
+ ]);return}
+ if(p.id==='house'){openModal('🏠 נדל״ן','קנה בית וקבל הכנסה פסיבית בכל דקה במשחק (גם כשאתה מסתובב בעיר).',[
+ {title:state.hasHouse?'🏡 הבית שלך':'🏡 קנה בית · ₪2,500',sub:state.hasHouse?'הנכס כבר בבעלותך':'הכנסה של ₪50 כל דקה במשחק',run:()=>{if(state.hasHouse){toast('כבר יש לך בית!');return}if(state.cash<2500){toast('חסר לך כסף');return}state.cash-=2500;state.hasHouse=true;state.houseIncome=Date.now();toast('מזל טוב! קנית בית 🏡');addXP(50)}}
+ ]);return}
+ if(p.id==='shop'){openModal('🛒 סופרמרקט','קנה דברים קטנים לחיי היום-יום שלך בעיר.',[
+ {title:'🥤 משקה אנרגיה · ₪50',sub:'בונוס של ₪20 XP? לא — +10 XP',run:()=>{if(!payWith(50,'משקה אנרגיה'))return;addXP(10);toast('קנית משקה וקיבלת +10 XP')}},
+ {title:'🍕 ארוחה · ₪80',sub:'משפרת את מצב הרוח · +15 XP',run:()=>{if(!payWith(80,'ארוחה'))return;addXP(15);toast('בתיאבון! +15 XP')}}
+ ]);return}
+ if(p.id==='park'){openModal('🌳 הפארק העירוני','קח הפסקה קצרה, הירגע וצבור ניסיון.',[
+ {title:'🧘 להירגע',sub:'חינם · +5 XP',run:()=>{addXP(5);toast('איזה כיף בפארק 🌳')}},
+ {title:'📸 לצלם תמונה',sub:'חינם · +5 XP',run:()=>{addXP(5);toast('תמונה נשמרה בזיכרון 😉')}}
+ ]);return}
+ if(p.id==='cafe'){openModal('☕ קפה השדרה','מקום להתרענן ולפגוש שכנים מהעיר.',[
+ {title:'🥐 קפה ומאפה · ₪45',sub:'הפסקה טובה · +12 XP',run:()=>{if(!payWith(45,'קפה ומאפה'))return;addXP(12);toast('היה טעים! +12 XP ☕')}},
+ {title:'🗣️ לשוחח עם תושבים',sub:'פעילות חינמית · +4 XP',run:()=>{addXP(4);socket.emit('emote','יושב לקפה ☕');toast('הכרת פנים חדשות בעיר')}}
+ ]);return}
+ if(p.id==='falafel'){openModal('🧆 פלאפל שמעון','דוכן שכונתי עם פיתה חמה, סלט וטחינה. שמעון אומר שהיונה חייבת לו 12 שקלים.',[{title:'🥙 מנת פלאפל · ₪28',sub:'אוכל ישראלי · +10 XP',run:()=>{if(!payWith(28,'מנת פלאפל'))return;rewardActivity('falafel',35,10,'שמעון פינק אותך בעוד כדור פלאפל!');progressStory(3,4,50,8,'שמעון מצא בקבלה רמז לתחנת האוטובוס')}}]);return}
+ if(p.id==='bakery'){openModal('🥖 מאפיית רחל','בורקס חם, בייגלה וקפה קטן של בוקר.',[{title:'🥐 בורקס ושתייה · ₪32',sub:'ארוחת בוקר · +12 XP',run:()=>{if(!payWith(32,'בורקס'))return;rewardActivity('bakery',20,12,'רחל ארזה לך בורקס לדרך');progressStory(5,6,90,18,'המשלוח הושלם! היונה מופיעה כעת בשוק בכל יום')}}]);return}
+ if(p.id==='market'){openModal('🧺 שוק העיר','דוכני פירות, ירקות ותבלינים. מותר להתמקח, אבל לא עם היונה.',[{title:'🍊 שקית תפוזים · ₪25',sub:'קנייה בשוק · +8 XP',run:()=>{if(!payWith(25,'קנייה בשוק'))return;rewardActivity('market',15,8,'קנית תפוזים טריים בשוק')}} ,{title:'🧺 לעזור לסוחר לסדר ארגזים',sub:'עבודה קצרה · ₪45 ו־12 XP',run:()=>rewardActivity('marketWork',45,12,'סידרת ארגזים. הסוחר נתן לך טיפ')}]);return}
+ if(p.id==='busStation'){showBusRoutes();return}
+ if(p.id==='gym'){openModal('🏋️ מכון הכושר','אימון קצר מחזק את האופי שלך ומעניק ניסיון.',[
+ {title:'🏃 אימון קצר · ₪30',sub:'+20 XP',run:()=>{if(state.cash<30){toast('אין מספיק כסף');return}state.cash-=30;addXP(20);toast('אימון הושלם! 💪')}},
+ {title:'🧘 מתיחות',sub:'חינם · +6 XP',run:()=>{addXP(6);toast('מרגישים רעננים!')}}
+ ]);return}
+}
+function buyCar(name,cost,speed){if(state.ownedCars.includes(name)){state.vehicle=name;state.vehicleSpeed=speed;toast('בחרת '+name);return}if(state.cash<cost){toast('חסר לך כסף לרכב הזה');return}state.cash-=cost;state.ownedCars.push(name);state.vehicle=name;state.vehicleSpeed=speed;addXP(35);toast('קנית '+name+'! 🚗')}
+function interact(){if(Date.now()<interactCooldownUntil)return;interactCooldownUntil=Date.now()+450;if(modal.style.display==='flex'){closeModal();return}if(ride){leaveBus();return}const p=nearPlace(),bs=nearBusStop();if(bs&&(!p||Math.hypot(player.x-bs.sx,player.y-bs.sy)<Math.hypot(player.x-(p.x+p.w/2),player.y-(p.y+p.h/2)))){boardBus(bs,null);return}if(p)usePlace(p);else toast('אין כאן מקום שאפשר להשתמש בו. חפש בניינים עם סימן מעליהם!')}
+function keyboardKey(e){const physical={KeyW:'w',KeyA:'a',KeyS:'s',KeyD:'d',KeyE:'e',KeyP:'p',KeyF:'f',KeyM:'m',KeyH:'h',KeyQ:'q',};return physical[e.code]||e.key.toLowerCase()}
+function togglePhotoMode(){photoMode=!photoMode;document.querySelectorAll('.hud,#questCard,#menuBtn,#phoneBtn,#walletBtn,#policeBtn,#minimap,#shiftCard,#connection,#chatLog').forEach(el=>el.style.visibility=photoMode?'hidden':'visible');toast(photoMode?'מצב צילום פעיל — לחץ P לחזרה':'יצאת ממצב צילום')}
+addEventListener('keydown',e=>{if(e.target instanceof HTMLElement&&['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))return;const k=keyboardKey(e);if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(e.repeat&&(k==='e'||k==='enter'||k==='p'))return;keys.add(k);if((k==='e'||k==='enter')&&!e.repeat)interact();if(k==='escape'&&!e.repeat)closeModal();if(k==='p'&&!e.repeat)togglePhotoMode();if(k==='f')attack();if(k==='q'&&!e.repeat)toggleSheath();if(k==='g'&&!e.repeat){player.handsUp=!player.handsUp;socket.emit('emote',player.handsUp?'מרים/ה ידיים 🙌':'מוריד/ה ידיים');toast(player.handsUp?'🙌 הרמת ידיים':'הורדת ידיים');}if(k==='shift'&&!e.repeat)dash();if((k==='1'||k==='2'||k==='3')&&!e.repeat)equipSlot(+k-1);if(k==='h'&&!e.repeat)quickHeal();if(k==='m'&&!e.repeat){mmHidden=!mmHidden;mmEl.style.display=mmHidden?'none':'block'}});
+addEventListener('keyup',e=>keys.delete(keyboardKey(e)));
+addEventListener('blur',()=>{keys.clear();mobile.clear();player.moving=false});document.addEventListener('visibilitychange',()=>{if(document.hidden){keys.clear();mobile.clear();player.moving=false}});
+document.querySelectorAll('[data-move]').forEach(b=>{const d=b.dataset.move;const start=e=>{e.preventDefault();mobile.add(d)};const end=e=>{e.preventDefault();mobile.delete(d)};b.addEventListener('pointerdown',start);b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end);b.addEventListener('pointerleave',end)});
+document.getElementById('mobileInteract').addEventListener('click',interact);
+document.getElementById('menuBtn').onclick=()=>openModal('☰ תפריט משחק','ברוך הבא ל-Cash Empire — החיים שלך, העיר שלך.',[
+ {title:'⌨️ מקשי המשחק',sub:'איך זזים, נכנסים, דוקרים ומתרפאים',cooldownMs:0,run:()=>openModal('⌨️ מקשי המשחק','WASD / חצים — תנועה\nE — כניסה למקום, עלייה לאוטובוס ופעולות\nF או קליק — דקירה (אחרי קניית סכין)\nShift — התחמקות\n1/2/3 — החלפת סכין · Q — החבאה\nH — עזרה ראשונה מהתיק\nM — הצג או הסתר מפה קטנה\nP — מצב צילום\n📱 הטלפון ו־👛 הארנק נמצאים בכפתורים שבצד',[])},
+ {title:'🎨 עיצוב דמות',sub:'שנה חולצה, גוון עור ושיער',cooldownMs:0,run:showSkinDesigner},
+ {title:'💾 שמור עכשיו',sub:'שמור את ההתקדמות במכשיר',run:save},
+ {title:'📊 סטטיסטיקה',sub:'סיכום הכסף והנכסים',run:()=>toast('מזומן '+fmt(state.cash)+' · בנק '+fmt(state.bank)+' · רמה '+state.level)},
+ {title:'🎁 מתנה יומית',sub:'בונוס פעם ביום מכל מכשיר · ₪250 ו־25 XP',run:()=>socket.emit('daily:claim')},
+ {title:'💬 צ׳אט עירוני',sub:'שלח הודעה לשחקנים המחוברים',run:()=>{const text=prompt('מה תרצה לכתוב בצ׳אט?');if(text)socket.emit('chat',text.slice(0,140))}},
+ {title:'👋 שלח אימוג׳י',sub:'ברך את השחקנים בעיר',run:()=>socket.emit('emote','מנופף לשלום 👋')},
+{title:'🧭 מידע על העיר',sub:'העיר והפרופיל נשמרים בשרת המשותף',run:()=>toast('התחבר מכל מכשיר עם אותו שם מלא כדי לטעון את הדמות שלך')}
+]);
+document.getElementById('phoneBtn').onclick=showFeatureHub;document.getElementById('walletBtn').onclick=openWallet;
+function collides(x,y){const r=player.r;return buildings.some(b=>x+r>b.x&&x-r<b.x+b.w&&y+r>b.y&&y-r<b.y+b.h)||places.some(p=>p.solid!==false&&x+r>p.x&&x-r<p.x+p.w&&y+r>p.y&&y-r<p.y+p.h)}
+function trafficCars(){const now=Date.now(),out=[];
+for(const d of trafficDefs){const len=d.h?WORLD.w:WORLD.h,pos=(((d.phase+d.dir*d.speed*now/1000)%len)+len)%len;out.push(d.h?{x:pos,y:d.lane,ang:d.dir>0?0:Math.PI,color:d.color,len:42,wid:15}:{x:d.lane,y:pos,ang:d.dir>0?Math.PI/2:-Math.PI/2,color:d.color,len:42,wid:15})}
+for(const b of buses){const st=busState(b,now);out.push({type:'bus',line:b.line.no,x:st.x,y:st.y,ang:st.ang,color:b.line.color,len:64,wid:22,stopped:st.stopped>=0})}
+return out}
+function die(reason='נפצעת קשה'){if(player.dead)return;abortShift('',false);player.dead=true;ride=null;keys.clear();wanted=0;cops.length=0;if(mugger){mugger.state='gone';mugger=null}const insured=state.activities.insured===1,lost=insured?0:Math.min(200,state.cash);state.activities.insured=0;state.cash-=lost;updateHud();syncProfile();openModal('🚑 הובהלת לבית החולים',reason+'. '+(insured?'הביטוח כיסה את הנזק!':('איבדת '+fmt(lost)+'.'))+' קמים במרפאה עם חיים מלאים. הסתכל לשני הכיוונים לפני שחוצים.',[{title:'🏥 חזרה לעיר',sub:'קמים במרפאה וממשיכים לשחק',cooldownMs:0,run:()=>{player.dead=false;state.hp=100;player.x=SPAWN.x;player.y=SPAWN.y;closeModal();updateHud();syncProfile();toast('החלמה מהירה!')}}])}
+function checkWorldGoals(){for(const [key,label,reward,xp] of [['treasure','האוצר',220,25],['delivery','המשלוח',160,20]]){const target=state[key];if(target&&Math.hypot(player.x-target.x,player.y-target.y)<45){state[key]=null;rewardActivity(key==='treasure'?'treasure':'delivery',reward,xp,'מצאת '+label+' והשלמת את המשימה!')}}if(waypoint&&Math.hypot(player.x-waypoint.x,player.y-waypoint.y)<55){const name=waypoint.name;waypoint=null;toast('הגעת אל '+name+' 📍')}}
+function movePlayer(dt){if(ride){const st=busState(ride.bus);player.x=st.x;player.y=st.y;player.moving=false;return}if(!profileReady||modal.style.display==='flex'||player.dead)return;let dx=0,dy=0;if(keys.has('w')||keys.has('arrowup')||mobile.has('up'))dy--;if(keys.has('s')||keys.has('arrowdown')||mobile.has('down'))dy++;if(keys.has('a')||keys.has('arrowleft')||mobile.has('left'))dx--;if(keys.has('d')||keys.has('arrowright')||mobile.has('right'))dx++;if(dx&&dy){dx*=.7071;dy*=.7071}player.moving=!!(dx||dy);const moving=!!(dx||dy);const dtSafe=Math.max(0,Math.min(50,dt));{const e0=Math.floor(state.energy);state.energy=Math.max(0,Math.min(100,state.energy+dtSafe*(moving?(state.vehicle==='ברגל'?-.0004:.0005):.001)));if(Math.floor(state.energy)!==e0)updateHud()}const speed=player.speed*60*(VEHICLE_SPEEDS[state.vehicle]||1)*(state.vehicle!=='ברגל'?1+.1*(state.activities.engine||0):1)*(state.energy<10?.75:1)*dtSafe/1000;const nx=Math.max(player.r,Math.min(WORLD.w-player.r,player.x+dx*speed)),ny=Math.max(player.r,Math.min(WORLD.h-player.r,player.y+dy*speed));if(!collides(nx,player.y))player.x=nx;if(!collides(player.x,ny))player.y=ny;if(dx||dy){player.faceX=dx;player.faceY=dy}checkWorldGoals();if(profileReady)for(const car of trafficCars()){if(Math.abs(player.x-car.x)>90||Math.abs(player.y-car.y)>90)continue;const c=Math.cos(car.ang),sn=Math.sin(car.ang),rx=player.x-car.x,ry=player.y-car.y,along=Math.abs(rx*c+ry*sn),across=Math.abs(-rx*sn+ry*c);if(along<car.len/2+8&&across<car.wid/2+8){if(hurtPlayer(35,'התנגשת ברכב ברחוב')){const sgn=(-rx*sn+ry*c)>=0?1:-1,kx=player.x-sn*sgn*60,ky=player.y+c*sgn*60;if(!collides(kx,ky)){player.x=kx;player.y=ky}}break}}}
+function drawBuilding(b){const roof=Math.max(0,b.y-13);ctx.fillStyle='#0003';ctx.fillRect(b.x+8,b.y+8,b.w,b.h);ctx.fillStyle='#55504c';ctx.beginPath();ctx.moveTo(b.x-7,b.y+5);ctx.lineTo(b.x+b.w/2,roof);ctx.lineTo(b.x+b.w+7,b.y+5);ctx.closePath();ctx.fill();ctx.fillStyle=b.c;ctx.fillRect(b.x,b.y,b.w,b.h);ctx.fillStyle='#ffffff20';ctx.fillRect(b.x+5,b.y+5,b.w-10,8);for(let x=b.x+16;x<b.x+b.w-12;x+=48)for(let y=b.y+25;y<b.y+b.h-42;y+=48){ctx.fillStyle='#293b4b';ctx.fillRect(x,y,27,29);ctx.fillStyle='#7dc4d2';ctx.fillRect(x+3,y+3,10,10);ctx.fillRect(x+15,y+3,9,10);ctx.fillStyle='#ffffff55';ctx.fillRect(x+5,y+4,2,22);ctx.fillStyle='#695343';ctx.fillRect(x+12,y+17,2,2)}ctx.fillStyle='#614433';ctx.fillRect(b.x+b.w/2-14,b.y+b.h-39,28,39);ctx.fillStyle='#d8bc8e';ctx.beginPath();ctx.arc(b.x+b.w/2+7,b.y+b.h-20,2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e8d7b7';ctx.fillRect(b.x+8,b.y+b.h-8,b.w-16,8)}
+function drawPlace(p){if(p.atm){drawATM(p);return}ctx.fillStyle='#0004';ctx.fillRect(p.x+5,p.y+7,p.w,p.h);ctx.fillStyle='#d6c4a5';ctx.fillRect(p.x,p.y,p.w,p.h);ctx.fillStyle=p.color;ctx.fillRect(p.x+4,p.y+9,p.w-8,p.h-13);ctx.fillStyle='#f4e8d2';ctx.fillRect(p.x+9,p.y+16,p.w-18,28);ctx.fillStyle='#24394a';ctx.fillRect(p.x+13,p.y+20,p.w-26,21);ctx.fillStyle='#8bd3d9';ctx.fillRect(p.x+16,p.y+22,(p.w-32)/2-2,16);ctx.fillRect(p.x+p.w/2+2,p.y+22,(p.w-32)/2-2,16);ctx.fillStyle='#6b4937';ctx.fillRect(p.x+p.w/2-13,p.y+p.h-35,26,35);ctx.fillStyle='#d4b279';ctx.fillRect(p.x+5,p.y+47,p.w-10,8);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 13px Arial';ctx.fillText(p.emoji+' '+p.name,p.x+p.w/2,p.y+p.h-14);}
+function drawHuman(x,y,color,name,moving=false,skin={}){const step=moving?Math.sin(Date.now()/85)*3:0,shirt=skin.shirt||color||'#2675c8',tone=skin.tone||'#f2c7a4',hair=skin.hair||'#3b2a24';ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(x,y+9,13,6,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#29374c';ctx.fillRect(x-5,y+13+step,4,8);ctx.fillRect(x+2,y+13-step,4,8);ctx.fillStyle='#e8d4bd';ctx.fillRect(x-7,y+19+step,7,3);ctx.fillRect(x+1,y+19-step,7,3);ctx.fillStyle=shirt;ctx.fillRect(x-8,y-1,16,16);ctx.fillStyle=tone;ctx.fillRect(x-12,y+1,4,11);ctx.fillRect(x+8,y+1,4,11);ctx.fillRect(x-13,y+10,5,4);ctx.fillRect(x+8,y+10,5,4);ctx.fillStyle=tone;ctx.beginPath();ctx.arc(x,y-9,8,0,Math.PI*2);ctx.fill();ctx.fillStyle=hair;ctx.beginPath();ctx.arc(x,y-12,8,Math.PI,Math.PI*2);ctx.fill();ctx.fillRect(x-8,y-12,4,5);ctx.fillStyle='#fff';ctx.fillRect(x-5,y-9,3,3);ctx.fillRect(x+2,y-9,3,3);ctx.fillStyle='#202a38';ctx.fillRect(x-4,y-8,2,2);ctx.fillRect(x+3,y-8,2,2);ctx.fillStyle='#986c57';ctx.fillRect(x-1,y-4,2,2);ctx.fillStyle='#fff';ctx.font='12px Arial';ctx.textAlign='center';ctx.fillText(name||'',x,y-24)}
+// ===== Combat v2: knives, combos, dodge, witnesses, smarter muggers and police =====
+const KNIVES={'אולר':{cost:150,dmg:14,range:54,cd:330,crit:.12,cleave:1,emoji:'🔪',sub:'מהיר · טווח קצר · נזק 14'},'סכין קצבים':{cost:400,dmg:24,range:62,cd:560,crit:.08,cleave:2,emoji:'🔪',sub:'כבד · פוגע בשני יעדים · נזק 24'},'פגיון':{cost:900,dmg:34,range:68,cd:430,crit:.2,cleave:1,emoji:'🗡️',sub:'ארוך וחד · קריטי 20% · נזק 34'}};
+if(!Number.isFinite(state.hp))state.hp=100;if(!Array.isArray(state.weapons))state.weapons=[];if(typeof state.equipped!=='string')state.equipped='';
+let wanted=0,lastCrime=0,invulnUntil=0,lastAttack=0,lastHurt=0,swing=null,lastCopSpawn=0,lastPedSpawn=0,nextMugger=Date.now()+60000,policeCooldown=0,mugger=null,lastHpShown=-1;
+let combo={n:0,until:0},dashUntil=0,dashDir={x:0,y:1},lastDash=0,lastSecret=0,lastCopNear=Date.now(),lastEquipped='',sfx=null;
+const shake={x:0,y:0,until:0,amp:0},sparks=[];
+const peds=[],cops=[],fx=[],hurtEl=document.getElementById('hurt');
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function blip(freq,dur,vol){try{if(!sfx)sfx=new (window.AudioContext||window.webkitAudioContext)();const o=sfx.createOscillator(),g=sfx.createGain();o.type='triangle';o.frequency.value=freq;g.gain.value=vol||.04;g.gain.exponentialRampToValueAtTime(.0001,sfx.currentTime+dur);o.connect(g);g.connect(sfx.destination);o.start();o.stop(sfx.currentTime+dur)}catch{}}
+function addShake(amp,ms){shake.amp=Math.max(shake.amp*(Date.now()<shake.until?1:0),amp);shake.until=Math.max(shake.until,Date.now()+ms)}
+function spark(x,y,n,color){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,sp=70+Math.random()*140;sparks.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,t:Date.now(),life:260+Math.random()*180,color})}}
+function pushAway(o,fromX,fromY,dist){const dx=o.x-fromX,dy=o.y-fromY,l=Math.hypot(dx,dy)||1;for(let s=dist;s>0;s-=6){const nx=o.x+dx/l*s,ny=o.y+dy/l*s;if(!collides(nx,ny)&&!(o.noRoad&&onRoad(nx,ny,6))){o.x=nx;o.y=ny;return}}}
+function updateCombatHud(){const hp=Math.max(0,Math.round(state.hp)),el=document.getElementById('hp');if(el){el.textContent=hp;el.style.color=hp<30?'#ff6b6b':'';const cp=document.getElementById('checksPill');if(cp){const tot=state.checks.reduce((a,c)=>a+c.amount,0);cp.style.display=state.checks.length?'':'none';document.getElementById('checksAmt').textContent=fmt(tot)}const w=document.getElementById('wantedPill'),st=document.getElementById('stars');if(w){w.style.display=wanted>0?'':'none';st.textContent='★'.repeat(wanted)+'☆'.repeat(5-wanted)}const wp=document.getElementById('weaponPill');if(wp){const k=KNIVES[state.equipped];wp.style.display=k?'':'none';if(k)wp.textContent=k.emoji+' '+state.equipped+(combo.n>1&&Date.now()<combo.until?' · קומבו ×'+combo.n:'')}}}
+function hurtPlayer(n,reason,fromX,fromY){const now=Date.now();if(now<invulnUntil||player.dead)return false;if(state.activities.vest)n=Math.max(1,Math.ceil(n*.7));state.hp=Math.max(0,state.hp-n);invulnUntil=now+(n>=30?1500:700);lastHurt=now;combo.n=0;hurtEl.classList.add('on');setTimeout(()=>hurtEl.classList.remove('on'),180);fx.push({x:player.x,y:player.y-30,text:'-'+n,color:'#ff6b6b',t:now});addShake(5,220);blip(120,.12,.06);if(fromX!==undefined){const nx=player.x+Math.sign(player.x-fromX||1)*14,ny=player.y+Math.sign(player.y-fromY||1)*14;if(!collides(nx,player.y))player.x=nx;if(!collides(player.x,ny))player.y=ny}updateHud();if(state.hp<=0){die(reason)}return true}
+function addWanted(n){const was=wanted;wanted=Math.min(5,wanted+n);lastCrime=Date.now();if(wanted>was)toast('🚨 המשטרה מחפשת אותך! '+'★'.repeat(wanted));updateHud()}
+function newPed(kind,x,y){const hp=kind==='mugger'?55:60;return{kind,noRoad:kind==='civ',x,y,hp,max:hp,dir:Math.random()*Math.PI*2,turnAt:0,speed:38+Math.random()*30,state:'walk',fleeUntil:0,deadAt:0,hitAt:0,nextHit:0,windUntil:0,stunUntil:0,reported:false,born:Date.now(),skin:kind==='mugger'?{shirt:'#202b3c',tone:'#d99e72',hair:'#141414'}:{shirt:pick(['#2675c8','#e44b59','#33a878','#9656cf','#ef9d32','#35b8b2','#f2e6d0']),tone:pick(['#f2c7a4','#d99e72','#a96f4f','#704532']),hair:pick(['#3b2a24','#141414','#d8a53e','#a74435','#e6dfd2'])}}}
+function stepToward(o,tx,ty,speed,dt){const d=Math.hypot(tx-o.x,ty-o.y)||1,mx=(tx-o.x)/d*speed*dt/1000,my=(ty-o.y)/d*speed*dt/1000,bad=(x,y)=>collides(x,y)||(o.noRoad&&onRoad(x,y,6));if(!bad(o.x+mx,o.y))o.x+=mx;if(!bad(o.x,o.y+my))o.y+=my;o.moving=true}
+const witnessed=v=>peds.some(o=>o!==v&&o.kind==='civ'&&o.state!=='dead'&&o.state!=='gone'&&Math.hypot(o.x-v.x,o.y-v.y)<420)||cops.some(c=>!c.target&&Math.hypot(c.x-v.x,c.y-v.y)<650);
+function panicAround(v){const now=Date.now();for(const o of peds)if(o!==v&&o.kind==='civ'&&o.state!=='dead'&&o.state!=='gone'&&Math.hypot(o.x-v.x,o.y-v.y)<280){o.state='flee';o.fleeUntil=now+3000}}
+function updateCombat(dt){if(!profileReady)return;const now=Date.now(),busy=modal.style.display==='flex'||player.dead;
+ if(state.hp<100&&now-lastHurt>6000){state.hp=Math.min(100,state.hp+dt*.0007*(1+Math.floor((state.activities.endurance||0)/5)*.15));if(Math.round(state.hp)!==lastHpShown){lastHpShown=Math.round(state.hp);updateHud()}}
+ if(combo.n&&now>combo.until){combo.n=0;updateHud()}
+ // screen shake + particles
+ if(now<shake.until){const k=(shake.until-now)/260;shake.x=(Math.random()-.5)*shake.amp*2*Math.min(1,k+.3);shake.y=(Math.random()-.5)*shake.amp*2*Math.min(1,k+.3)}else{shake.x=0;shake.y=0;shake.amp=0}
+ for(let i=sparks.length-1;i>=0;i--){const p=sparks[i],age=now-p.t;if(age>p.life){sparks.splice(i,1);continue}p.x+=p.vx*dt/1000;p.y+=p.vy*dt/1000;p.vx*=.93;p.vy*=.93}
+ // dodge roll movement
+ if(now<dashUntil&&!ride){const sp=760*dt/1000,nx=player.x+dashDir.x*sp,ny=player.y+dashDir.y*sp;if(!collides(nx,player.y))player.x=nx;if(!collides(player.x,ny))player.y=ny}
+ // citizens
+ const alive=peds.filter(p=>p.state!=='dead'&&p.state!=='gone').length;
+ if(alive<14&&now-lastPedSpawn>400){lastPedSpawn=now;const[x,y]=randomOpenSpot(380,900);peds.push(newPed('civ',x,y))}
+ for(let i=peds.length-1;i>=0;i--){const q=peds[i],d=Math.hypot(q.x-player.x,q.y-player.y);
+  if(q.state==='gone'||(q.state==='dead'&&now-q.deadAt>9000)||(q.kind==='civ'&&d>1500)){peds.splice(i,1);continue}
+  if(q.state==='dead')continue;q.moving=false;
+  if(q.kind==='mugger'){if(busy||ride)continue;if(now<q.stunUntil)continue;
+   if(q.state==='flee'){stepToward(q,q.x+(q.x-player.x),q.y+(q.y-player.y),230,dt);if(now>q.fleeUntil){q.state='gone';if(mugger===q)mugger=null;toast('🥷 השודד ברח')}continue}
+   if(q.hp<q.max*.3){q.state='flee';q.fleeUntil=now+7000;q.windUntil=0;toast('🥷 השודד פצוע ובורח! רדוף אחריו או תן לו ללכת');continue}
+   if(q.windUntil){if(now>=q.windUntil){q.windUntil=0;q.nextHit=now+1100;if(Math.hypot(q.x-player.x,q.y-player.y)<50){if(hurtPlayer(10,'שודד תקף אותך',q.x,q.y)){const steal=Math.min(state.cash,15);state.cash-=steal;if(steal)addTxn('נגנב על ידי שודד',-steal);if(steal)toast('🥷 השודד גנב ממך '+fmt(steal)+'!');updateHud()}}else fx.push({x:q.x,y:q.y-34,text:'החטיא!',color:'#cfd8e3',t:now})}continue}
+   stepToward(q,player.x,player.y,135,dt);if(d<64&&now>q.nextHit)q.windUntil=now+520;
+   if(now-q.born>120000){q.state='gone';mugger=null;toast('🥷 השודד התייאש ונעלם')}continue}
+  if(now<q.stunUntil)continue;
+  if(q.state==='flee'&&now<q.fleeUntil){stepToward(q,q.x+(q.x-player.x),q.y+(q.y-player.y),q.speed*3,dt);continue}
+  q.state='walk';if(now>q.turnAt){q.dir=Math.random()*Math.PI*2;q.turnAt=now+1500+Math.random()*2500}
+  const tx=q.x+Math.cos(q.dir)*50,ty=q.y+Math.sin(q.dir)*50;const ox=q.x,oy=q.y;stepToward(q,tx,ty,q.speed,dt);if(ox===q.x&&oy===q.y)q.turnAt=0}
+ // police
+ const wantCops=wanted>0?Math.min(6,wanted+1):0,chasers=cops.filter(c=>!c.target).length;
+ if(chasers<wantCops&&now-lastCopSpawn>2500){lastCopSpawn=now;const[x,y]=randomOpenSpot(650,950);cops.push({x,y,cuffT:0,skin:{shirt:'#1f3a8a',tone:'#f2c7a4',hair:'#141414'}})}
+ if(wanted===0)for(let i=cops.length-1;i>=0;i--)if(!cops[i].target)cops.splice(i,1);
+ let copNear=false;
+ for(let i=cops.length-1;i>=0;i--){const c=cops[i];c.moving=false;
+  if(c.target){const t=c.target;if(t.state==='gone'||t.state==='dead'){cops.splice(i,1);continue}stepToward(c,t.x,t.y,280,dt);if(Math.hypot(c.x-t.x,c.y-t.y)<32){t.state='gone';if(t===mugger)mugger=null;cops.splice(i,1);state.cash+=75;addTxn('פרס על עצירת שודד',75);addXP(20);toast('👮 השוטרים עצרו את השודד! קיבלת ₪75 ו־20 XP');updateHud();syncProfile()}continue}
+  if(busy||ride){c.cuffT=0;continue}
+  const dd=Math.hypot(c.x-player.x,c.y-player.y);if(dd<950)copNear=true;
+  stepToward(c,player.x,player.y,115+wanted*28,dt);
+  if(dd<30){c.cuffT=(c.cuffT||0)+dt;if(c.cuffT>=900){const fine=Math.min(state.cash,80*wanted);state.cash-=fine;if(fine)addTxn('קנס משטרה',-fine);wanted=0;cops.length=0;combo.n=0;const ps=places.find(q=>q.id==='police');player.x=ps.x+ps.w/2;player.y=ps.y+ps.h+34;toast('👮 נעצרת! שילמת קנס של '+fmt(fine)+' ושוחררת מתחנת המשטרה');updateHud();syncProfile();break}}
+  else c.cuffT=Math.max(0,(c.cuffT||0)-dt*2)}
+ if(copNear)lastCopNear=now;
+ if(wanted>0){if(now-lastCrime>22000){wanted--;lastCrime=now;updateHud();if(!wanted)toast('😮‍💨 המשטרה הפסיקה לחפש אותך')}else if(now-lastCopNear>9000&&now-lastCrime>9000){wanted--;lastCrime=now-12000;lastCopNear=now;updateHud();toast(wanted?'🕵️ ברחת מחלק מהשוטרים':'😮‍💨 איבדת את המשטרה')}}
+ // random mugger event
+ if(!mugger&&now>nextMugger&&!busy&&!ride){const[x,y]=randomOpenSpot(450,650);mugger=newPed('mugger',x,y);peds.push(mugger);nextMugger=now+120000+Math.random()*90000;toast('🥷 שודד מתקרב אליך! הוצא סכין (F), התחמק (Shift) או התקשר למשטרה 🚓',9000)}}
+function createCriminalRecord(v,witnessedCrime){
+ const records=Array.isArray(state.activities.criminalRecords)?state.activities.criminalRecords:[];
+ const record={id:'CR-'+Date.now().toString(36).toUpperCase(),type:'תקיפת תושב שהסתיימה במוות',date:new Date().toLocaleString('he-IL'),location:places.find(p=>p.id==='park'&&Math.hypot(v.x-(p.x+p.w/2),v.y-(p.y+p.h/2))<250)?.name||'אזור העיר',witnessed:!!witnessedCrime,status:witnessedCrime?'פתוח — דווח למשטרה':'בבדיקה — אין עדים ידועים',reported:!!witnessedCrime};
+ records.unshift(record);state.activities.criminalRecords=records.slice(0,50);
+ addTxn('נפתח תיק פלילי '+record.id,0);
+ toast('📁 נפתח תיק פלילי '+record.id+(witnessedCrime?' — עדים דיווחו למשטרה':' — האירוע נרשם במערכת'));
+ syncProfile();
+}
+function attack(aimX,aimY){const now=Date.now();if(!profileReady||ride||player.dead||modal.style.display==='flex')return;const k=KNIVES[state.equipped];
+ if(!state.equipped||!k){if(now-lastAttack>1500){toast('אין לך סכין. אפשר לקנות בחנות הסכינים 🔪');lastAttack=now}return}
+ if(now-lastAttack<k.cd)return;lastAttack=now;
+ let fxv=player.faceX||0,fyv=player.faceY||1;if(aimX!==undefined){const l=Math.hypot(aimX,aimY)||1;fxv=aimX/l;fyv=aimY/l;player.faceX=fxv;player.faceY=fyv}
+ swing={t:now,x:fxv,y:fyv,range:k.range};blip(420,.05,.05);
+ const cands=[];for(const q of peds){if(q.state==='dead'||q.state==='gone')continue;const dx=q.x-player.x,dy=q.y-player.y,d=Math.hypot(dx,dy);if(d>k.range)continue;const dot=d?(dx*fxv+dy*fyv)/d:1;if(d<26||dot>.42)cands.push({q,score:d*(2-dot)})}
+ if(!cands.length)return;cands.sort((a,b)=>a.score-b.score);
+ combo.n=now<combo.until?Math.min(3,combo.n+1):1;combo.until=now+1400;const finisher=combo.n===3,mult=[1,1.15,1.35][combo.n-1];
+ for(const {q} of cands.slice(0,k.cleave)){
+  const crit=Math.random()<k.crit,base=k.dmg+Math.floor(Math.random()*5)+Math.floor((state.activities.strength||0)/5)*2,dmg=Math.round(base*mult*(crit?1.8:1));
+  q.hp-=dmg;q.hitAt=now;q.stunUntil=now+(finisher?480:260);q.windUntil=0;q.nextHit=Math.max(q.nextHit,now+700);pushAway(q,player.x,player.y,finisher?22:10);
+  spark(q.x,q.y-8,crit||finisher?12:7,crit?'#ffd166':'#ffffff');addShake(crit||finisher?4:2,160);blip(crit?640:300,.07,.05);
+  fx.push({x:q.x,y:q.y-28,text:(crit?'💥 ':'')+'-'+dmg,color:crit?'#ff9f43':'#ffe17c',t:now,big:crit});
+  if(q.kind==='mugger'){if(q.hp<=0){q.state='dead';q.deadAt=now;mugger=null;state.cash+=60;addTxn('פרס על הדיפת שודד',60);addXP(15);toast('🥷 הדפת את השודד! קיבלת ₪60 ו־15 XP');updateHud();syncProfile()}continue}
+  const wit=witnessed(q);
+  if(!q.reported){q.reported=true;if(wit)addWanted(1);else if(now-lastSecret>6000){lastSecret=now;toast('🤫 אף אחד לא ראה...')}}
+  q.state='flee';q.fleeUntil=now+4000;panicAround(q);
+  if(q.hp<=0){q.state='dead';q.deadAt=now;createCriminalRecord(q,wit);if(wit){addWanted(1);toast('💫 תושב איבד הכרה. המשטרה בדרך!')}else toast('💫 תושב איבד הכרה. נראה שאף אחד לא ראה')}}
+ if(finisher){fx.push({x:player.x,y:player.y-46,text:'⚡ קומבו!',color:'#7ee787',t:now,big:true});combo.n=0;combo.until=0}
+ updateHud()}
+function dash(){const now=Date.now();if(!profileReady||ride||player.dead||modal.style.display==='flex'||now<lastDash+1400)return;if(state.energy<8){toast('😮‍💨 אין לך כוח להתחמק');return}
+ const l=Math.hypot(player.faceX||0,player.faceY||1)||1;dashDir={x:(player.faceX||0)/l,y:(player.faceY||1)/l};state.energy=Math.max(0,state.energy-8);lastDash=now;dashUntil=now+170;invulnUntil=Math.max(invulnUntil,now+330);spark(player.x,player.y+10,6,'#cfe6ff');blip(220,.09,.04);updateHud()}
+function equipSlot(i){const owned=Object.keys(KNIVES).filter(n=>state.weapons.includes(n));const n=owned[i];if(!n){toast('אין לך סכין בחריץ '+(i+1));return}state.equipped=n;syncProfile();updateHud();toast('הוצאת '+n+' '+KNIVES[n].emoji)}
+function toggleSheath(){if(state.equipped){lastEquipped=state.equipped;state.equipped='';toast('החבאת את הסכין')}else{const n=lastEquipped&&state.weapons.includes(lastEquipped)?lastEquipped:Object.keys(KNIVES).find(x=>state.weapons.includes(x));if(!n){toast('אין לך סכין. קנה בחנות הסכינים 🔪');return}state.equipped=n;toast('הוצאת '+n+' '+KNIVES[n].emoji)}syncProfile();updateHud()}
+function callPolice(){const now=Date.now();if(player.dead)return;if(now<policeCooldown){toast('☎️ הקו עסוק, נסה שוב עוד כמה שניות');return}policeCooldown=now+15000;
+ if(wanted>0){toast('📞 "משטרה? אני מחפש את עצמי!" 😅 הם דווקא כבר מחפשים אותך...')}
+ else if(mugger&&mugger.state!=='dead'&&mugger.state!=='gone'){const[x,y]=randomOpenSpot(700,950);cops.push({x,y,target:mugger,skin:{shirt:'#1f3a8a',tone:'#f2c7a4',hair:'#141414'}});toast('🚓 ניידת בדרך אליך! תחזיק מעמד...')}
+ else{const fine=Math.min(30,state.cash);state.cash-=fine;if(fine)addTxn('קנס דיווח שווא',-fine);toast('🚨 דיווח שווא! המשטרה קנסה אותך '+fmt(fine)+'. התקשר רק כשיש אירוע.');updateHud()}
+ if(modal.style.display==='flex')closeModal()}
+document.getElementById('policeBtn').onclick=callPolice;
+document.getElementById('mobileAttack').addEventListener('pointerdown',e=>{e.preventDefault();attack()});
+{const md=document.getElementById('mobileDash');if(md)md.addEventListener('pointerdown',e=>{e.preventDefault();dash()})}
+canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||e.button!==0||!state.equipped||modal.style.display==='flex')return;const r=canvas.getBoundingClientRect(),wx=camX+(e.clientX-r.left)*(W/r.width),wy=camY+(e.clientY-r.top)*(H/r.height);attack(wx-player.x,wy-player.y)});
+function showKnifeShop(){const items=Object.entries(KNIVES).map(([name,k])=>state.weapons.includes(name)?{title:(state.equipped===name?'✅ ':'🤝 ')+name,sub:state.equipped===name?'בידיים שלך · '+k.sub:'בחר · '+k.sub,cooldownMs:0,run:()=>{state.equipped=name;syncProfile();updateHud();toast('הוצאת '+name+' — F או קליק על המסך כדי לדקור');closeModal()}}:{title:k.emoji+' '+name+' · '+fmt(k.cost),sub:k.sub,cooldownMs:0,run:()=>{if(!payWith(k.cost,name))return;state.weapons.push(name);state.equipped=name;updateHud();syncProfile();toast('קנית '+name+' ✓ F או קליק כדי לדקור. שים לב: דקירת תושבים מול עדים מביאה כוכבי מבוקש!');closeModal()}});
+ items.push({title:'🩹 ערכת עזרה ראשונה · '+fmt(50),sub:'+50 חיים',cooldownMs:0,run:()=>{if(state.hp>=100){toast('החיים שלך כבר מלאים');return}if(!payWith(50,'עזרה ראשונה'))return;state.hp=Math.min(100,state.hp+50);updateHud();syncProfile();toast('🩹 הרגשת הרבה יותר טוב')}});
+ items.push({title:state.activities.vest?'🦺 ווסט מגן (בבעלותך)':'🦺 ווסט מגן · '+fmt(500),sub:'מפחית 30% מכל נזק שאתה סופג',cooldownMs:0,run:()=>{if(state.activities.vest){toast('כבר יש לך ווסט');return}if(!payWith(500,'ווסט מגן'))return;state.activities.vest=1;toast('🦺 לבשת ווסט מגן');syncProfile();showKnifeShop()}});
+ if(state.equipped)items.push({title:'🤲 החבא את הסכין',sub:'לא תוכל לדקור עד שתוציא שוב (Q)',cooldownMs:0,run:()=>{lastEquipped=state.equipped;state.equipped='';syncProfile();updateHud();toast('החבאת את הסכין');closeModal()}});
+ openModal('🔪 חנות הסכינים','"ברוך הבא! אנחנו לא שואלים שאלות... אבל המשטרה כן."\nF או קליק — דקירה · Shift — התחמקות · 1/2/3 — החלפת סכין · Q — החבאה\n❤️ חיים: '+Math.round(state.hp)+'%',items)}
+function showPoliceStation(){const items=[
+ {title:'📂 התיקים הפליליים שלי · '+((state.activities.criminalRecords||[]).length),sub:'תיקים נוצרים רק כשאתה גורם לתושב למות במהלך המשחק',cooldownMs:0,run:()=>{const records=Array.isArray(state.activities.criminalRecords)?state.activities.criminalRecords:[];if(!records.length){openModal('📂 תיקים פליליים','אין לך תיקים פליליים. תיק חדש ייווצר רק אם תושב ימות כתוצאה מתקיפה שלך.',[{title:'↩️ חזרה לתחנה',sub:'',cooldownMs:0,run:()=>showPoliceStation()}]);return}openModal('📂 התיקים הפליליים שלי',records.map(r=>'📁 '+r.id+' · '+r.type+'\n📍 '+r.location+' · '+r.date+'\n👁️ '+(r.witnessed?'יש עדים':'אין עדים ידועים')+'\n📌 '+r.status).join('\n\n'),[{title:'📝 להוסיף הערה לתיק האחרון',sub:'תיעוד במשחק',cooldownMs:0,run:()=>{const latest=records[0];latest.note=(latest.note||'')+'\nנבדק בתחנת המשטרה ב־'+new Date().toLocaleString('he-IL');state.activities.criminalRecords=records;syncProfile();toast('נוספה הערה לתיק '+latest.id);showPoliceStation()}},{title:'↩️ חזרה לתחנה',sub:'',cooldownMs:0,run:()=>showPoliceStation()}])}},
+ {title:'🚓 דווח על שודד',sub:'שלח ניידת כשיש שודד קרוב',cooldownMs:0,run:callPolice}];
+ if(wanted>0)items.push({title:'💸 שלם קנס · '+fmt(100*wanted),sub:'נקה את הרישום ('+'★'.repeat(wanted)+')',cooldownMs:0,run:()=>{if(!payWith(100*wanted,'קנס'))return;wanted=0;cops.length=0;updateHud();syncProfile();toast('הרישום נוקה. תתנהג יפה!');closeModal()}});
+ openModal('🚓 תחנת משטרה','"אנחנו כאן כדי לשמור על העיר." '+((state.activities.criminalRecords||[]).length?'📁 תיקים פליליים: '+state.activities.criminalRecords.length+'. ':'')+(wanted?'🚨 אתה מבוקש ('+'★'.repeat(wanted)+')!':'אין לך כוכבי מבוקש כרגע.'),items)}
+function drawBar(x,y,w,frac,color){ctx.fillStyle='#000a';ctx.fillRect(x-w/2-1,y-1,w+2,6);ctx.fillStyle=color;ctx.fillRect(x-w/2,y,w*Math.max(0,Math.min(1,frac)),4)}
+function drawPerson(o,label,cap){const now=Date.now();if(o.state==='dead'){ctx.save();ctx.translate(o.x,o.y);ctx.rotate(Math.PI/2);drawHuman(0,0,'#fff','',false,o.skin);ctx.restore();ctx.font='14px Arial';ctx.textAlign='center';ctx.fillText('💫',o.x,o.y-14);return}
+ const flash=o.hitAt&&now-o.hitAt<150;if(flash){ctx.globalAlpha=.55}drawHuman(o.x,o.y,'#fff',label,!!o.moving,o.skin);ctx.globalAlpha=1;if(cap){ctx.fillStyle='#14224f';ctx.fillRect(o.x-9,o.y-20,18,5);ctx.fillRect(o.x-6,o.y-23,12,4)}
+ if(o.max&&(o.hp<o.max||o.kind==='mugger'))drawBar(o.x,o.y-34,30,o.hp/o.max,o.kind==='mugger'?'#ff6b6b':'#7ee787');
+ if(o.windUntil){const f=1-(o.windUntil-now)/520;ctx.fillStyle='#ff4d4d';ctx.font='bold 22px Arial';ctx.textAlign='center';ctx.fillText('❗',o.x,o.y-44);ctx.strokeStyle='#ff4d4daa';ctx.lineWidth=2;ctx.beginPath();ctx.arc(o.x,o.y,26*Math.max(.2,f),0,Math.PI*2);ctx.stroke()}
+ if(o.cuffT>0){drawBar(o.x,o.y-34,30,o.cuffT/900,'#4aa3ff');ctx.font='bold 11px Arial';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('עוצר…',o.x,o.y-40)}}
+function drawPeople(){const now=Date.now();for(const p of remotePlayers.values()){if(Number.isFinite(p.x)&&Number.isFinite(p.y)&&vis(p.x-35,p.y-55,70,100)){drawPerson({x:p.x,y:p.y,moving:!!p.moving,skin:p.skin||{shirt:'#37a3a0',tone:'#f2c7a4',hair:'#3b2a24'},handsUp:!!p.handsUp},p.name||'שחקן',false);if(p.handsUp){ctx.font='18px Arial';ctx.textAlign='center';ctx.fillText('🙌',p.x,p.y-36)}}}for(const q of peds)if(q.state!=='gone'&&vis(q.x-30,q.y-50,60,90))drawPerson(q,q.kind==='mugger'?'🥷':'',false);
+ for(const c of cops)if(vis(c.x-48,c.y-56,100,105)){if(wanted>0){ctx.save();ctx.font='25px Arial';ctx.textAlign='center';ctx.fillText('🚓',c.x+24,c.y+22);if(Date.now()%700<350){ctx.fillStyle='#ff4545';ctx.beginPath();ctx.arc(c.x+17,c.y+7,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#459dff';ctx.beginPath();ctx.arc(c.x+25,c.y+7,3,0,Math.PI*2);ctx.fill()}ctx.restore()}drawPerson(c,'👮',true);}
+ for(const p of sparks){const age=now-p.t;ctx.globalAlpha=Math.max(0,1-age/p.life);ctx.fillStyle=p.color;ctx.fillRect(p.x-1.5,p.y-1.5,3,3)}ctx.globalAlpha=1;
+ for(let i=fx.length-1;i>=0;i--){const f=fx[i],age=now-f.t;if(age>900){fx.splice(i,1);continue}ctx.globalAlpha=1-age/900;ctx.fillStyle=f.color;ctx.font=(f.big?'bold 21px':'bold 16px')+' Arial';ctx.textAlign='center';ctx.fillText(f.text,f.x,f.y-age/30);ctx.globalAlpha=1}}
+function drawWeapon(){if(ride||!state.equipped)return;const now=Date.now(),k=KNIVES[state.equipped];if(!k)return;const fxv=player.faceX||0,fyv=player.faceY||1;
+ if(now<dashUntil){ctx.globalAlpha=.35;ctx.fillStyle='#cfe6ff';ctx.beginPath();ctx.ellipse(player.x-dashDir.x*22,player.y-dashDir.y*22+4,14,9,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1}
+ if(swing&&now-swing.t<190){const f=(now-swing.t)/190,a=Math.atan2(swing.y,swing.x),r=swing.range*.62;ctx.strokeStyle='rgba(255,255,255,'+(.85-f*.8)+')';ctx.lineWidth=5-f*3;ctx.beginPath();ctx.arc(player.x,player.y,r,a-.95+f*.5,a+.95-f*.2);ctx.stroke();ctx.font='20px Arial';ctx.textAlign='center';ctx.fillText(k.emoji,player.x+Math.cos(a-.6+f*1.2)*r,player.y+Math.sin(a-.6+f*1.2)*r+6)}
+ else{ctx.font='16px Arial';ctx.textAlign='center';ctx.fillText(k.emoji,player.x+fxv*17,player.y+6+fyv*8)}}
+
+// ===== Jobs: interviews, real shifts and paycheques redeemed at the bank =====
+const JOBS={
+ cashier:{name:'קופאי/ת',emoji:'🧾',place:'shop',employer:'הסופרמרקט',level:1,base:100,type:'desk'},
+ courier:{name:'שליח/ה',emoji:'📦',place:'job',employer:'שליחויות העיר',level:1,base:130,type:'field'},
+ baker:{name:'אופה',emoji:'🥖',place:'bakery',employer:'מאפיית רחל',level:2,base:160,type:'desk'},
+ trainer:{name:'מאמן/ת כושר',emoji:'🏋️',place:'gym',employer:'מכון הכושר',level:3,base:210,type:'desk'},
+ teller:{name:'פקיד/ת בנק',emoji:'🏦',place:'bank',employer:'הבנק המרכזי',level:4,base:270,type:'desk'}
+};
+const RANKS=['מתמחה','עובד/ת','בכיר/ה','מנהל/ת משמרת'];
+if(!Array.isArray(state.checks))state.checks=[];if(!('job' in state))state.job=null;state.interviewAt=state.interviewAt||{};
+const GENERAL_Q=[
+ {q:'למה אתה רוצה את העבודה הזאת?',o:['אני רוצה ללמוד, להתקדם ולתרום לצוות','רק בשביל הכסף, ובקושי','אין לי מה לעשות אחרת']},
+ {q:'הגעת באיחור למשמרת. מה עושים?',o:['מתנצלים, מסבירים ומשלימים את הזמן','מעמידים פנים שהגעת בזמן','הולכים הביתה']},
+ {q:'אתה לא יודע איך עושים משהו בעבודה. מה עושים?',o:['שואלים עמית או מנהל','מנחשים ומקווים לטוב','מתעלמים מהמשימה']},
+ {q:'לקוח כועס צועק עליך. מה הכי נכון?',o:['מקשיבים בשקט ומציעים פתרון','צועקים בחזרה','עוזבים את העמדה']},
+ {q:'מה חשוב בעיניך בעבודת צוות?',o:['אמינות ותקשורת','לעשות רק את שלי','להתחרות בכולם']}];
+const JOB_Q={
+ cashier:[{q:'לקוח נתן ₪50 על קנייה של ₪37. כמה עודף?',o:['₪13','₪17','₪23']},{q:'הברקוד לא נסרק. מה עושים?',o:['מקלידים את המק״ט ידנית או קוראים לעזרה','מדלגים על המוצר','מבקשים מהלקוח לנחש מחיר']},{q:'המחיר בקופה שונה מהמחיר על המדף. מה עושים?',o:['בודקים מול המנהל ומתקנים','קובעים מחיר לבד','מתעלמים']},{q:'הקופה לא מתאזנת בסוף משמרת. מה עושים?',o:['בודקים ומדווחים למנהל','משלימים מהכיס בשקט','מסתירים']}],
+ courier:[{q:'הכתובת לא ברורה. מה עושים?',o:['מתקשרים ללקוח או לסניף ומבררים','משאירים בכל דלת','חוזרים בלי לספר']},{q:'האוכל חם וצריך להגיע מהר. איך נוסעים?',o:['מהר אבל בזהירות ולפי החוקים','חוצים באדום','דוהרים בין הולכי רגל']},{q:'הלקוח לא פותח את הדלת. מה עושים?',o:['מחכים, מנסים שוב ומדווחים','אוכלים את המשלוח','זורקים אותו']},{q:'יורד גשם חזק. מה עושים?',o:['מגינים על האוכל ונזהרים בדרך','מתעלמים','מבטלים בלי לדווח']}],
+ baker:[{q:'בורקס צריך 12 דקות בתנור. הוכנס ב־10:05. מתי מוציאים?',o:['10:17','10:12','10:25']},{q:'הבצק לא תפח. מה עושים?',o:['ממתינים ובודקים טמפרטורה','אופים בכל זאת','זורקים הכל']},{q:'תבשיל נשרף. מה עושים?',o:['מדווחים ומחליפים','מגישים בכל זאת','מסתירים']},{q:'מה חשוב בהיגיינה?',o:['שוטפים ידיים וחובשים כובע','לא משנה','לטעום מעל הבצק']}],
+ trainer:[{q:'מתאמן חדש מתלונן על כאב חד בחזה. מה עושים?',o:['עוצרים את האימון וקוראים לעזרה','ממשיכים','אומרים לו להתאמץ יותר']},{q:'מתאמן רוצה להתחיל במשקל כבד מאוד. מה עושים?',o:['מתחילים בהדרגה עם טכניקה נכונה','מרשים לו הכל','שולחים אותו הביתה']},{q:'מכשיר שבור בחדר. מה עושים?',o:['מסמנים שהוא תקול ומדווחים','משאירים כך','מתעלמים']},{q:'מתאמן שותה מעט מאוד מים. מה עושים?',o:['מזכירים לו לשתות באופן קבוע','אין צורך','לוקחים לו את הבקבוק']}],
+ teller:[{q:'לקוח מבקש למשוך ₪5,000 במזומן. מה עושים?',o:['מזהים אותו ובודקים יתרה','נותנים בלי תעודה','מסרבים לכולם']},{q:'צ׳ק עם חתימה שונה מהרגיל. מה עושים?',o:['בודקים ומעבירים לבירור','פודים בכל זאת','קורעים את הצ׳ק']},{q:'מישהו מבקש את הסיסמה של לקוח אחר. מה עושים?',o:['מסרבים לחלוטין','נותנים אם הוא נחמד','שואלים עמית מתוך סקרנות']},{q:'איך מגנים על פרטי לקוחות?',o:['לא חושפים אותם לאף אחד שלא מורשה','מעבירים לחברים','מדברים עליהם בקול רם']}]};
+const rint=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function shuffled(a){const r=a.slice();for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]}return r}
+function mathOpts(c){const w=new Set();while(w.size<2){const d=pick([-10,-5,-2,2,5,10,1,-1]);if(c+d>=0&&c+d!==c)w.add(c+d)}return[c,...w]}
+function makeTask(id){
+ if(id==='cashier'){const items=[['חלה',12],['חלב',7],['ביצים',15],['לחם',9],['גבינה',18],['קפה',22]],r=Math.random();
+  if(r<.7){const [n,pr]=pick(items),qty=rint(2,4),total=qty*pr,paid=Math.ceil((total+1)/10)*10+pick([0,10]),c=paid-total;return{q:'לקוח קונה '+qty+'× '+n+' ('+fmt(pr)+' ליחידה) ומשלם '+fmt(paid)+'. מה העודף?',o:mathOpts(c).map(v=>fmt(v)),a:fmt(c)}}
+  const sv=pick([{q:'לקוח שואל איפה החלב. מה עונים?',o:['מלווים אותו למקרר ומראים','"תחפש לבד"','מתעלמים']},{q:'ילד מנסה לצאת עם ממתק בלי לשלם. מה עושים?',o:['פונים בנימוס ומבקשים לשלם','צועקים עליו','מתעלמים']},{q:'התור ארוך מאוד. מה עושים?',o:['קוראים לעובד נוסף ומזרזים בנימוס','סוגרים את הקופה','עובדים לאט']}]);return{q:sv.q,o:sv.o,a:sv.o[0]}}
+ if(id==='baker'){const r=Math.random();if(r<.6){const n=rint(3,9)*10+rint(0,9),m=rint(4,8)*2,c=Math.ceil(n/m);return{q:'צריך לאפות '+n+' בורקסים. מגש מכיל '+m+'. כמה מגשים צריך?',o:mathOpts(c).map(String),a:String(c)}}
+  const sv=pick([{q:'הבצק דביק מדי. מה מוסיפים?',o:['מעט קמח','מים','סוכר'],},{q:'הפינוק נשרף בצדדים. מה עושים?',o:['מורידים טמפרטורה ובודקים את התנור','מגבירים אש','מכסים בסוכר']},{q:'הלקוח מבקש מוצר ללא גלוטן. מה עונים?',o:['מסבירים בכנות מה מתאים ומה לא','"הכל בסדר, קח"','מתעלמים']}]);return{q:sv.q,o:sv.o,a:sv.o[0]}}
+ if(id==='trainer'){const r=Math.random();if(r<.5){const s_=rint(3,5),re=rint(8,12),c=s_*re;return{q:'מתאמן עושה '+s_+' סטים של '+re+' חזרות. כמה חזרות בסך הכל?',o:mathOpts(c).map(String),a:String(c)}}
+  const sv=pick([{q:'מתאמן מתלונן על סחרחורת. מה עושים?',o:['מושיבים אותו ונותנים מים','ממשיכים','מגבירים עומס']},{q:'מה בודקים לפני סקוואט?',o:['יציבות הגב והברכיים','צבע הנעליים','כמה אנשים מסתכלים']},{q:'מתכננים 3 אימונים בשבוע. מה לגבי מנוחה?',o:['יום מנוחה בין האימונים','אימון כל יום בלי מנוחה','לא לישון']}]);return{q:sv.q,o:sv.o,a:sv.o[0]}}
+ if(id==='teller'){const r=Math.random();if(r<.6){const c0=rint(5,30)*100,a=rint(1,6)*100,b=rint(1,4)*100,c=c0+a-b;return{q:'יתרה '+fmt(c0)+'. מפקידים '+fmt(a)+' ומושכים '+fmt(b)+'. מה היתרה החדשה?',o:mathOpts(c).map(v=>fmt(v)),a:fmt(c)}}
+  const sv=pick([{q:'לקוח מבקש לבדוק יתרה של אדם אחר. מה עונים?',o:['מסרבים — אסור לחשוף פרטי חשבון','נותנים אם מבקשים יפה','מראים על המסך']},{q:'צ׳ק עם תאריך שעבר מזמן. מה עושים?',o:['בודקים תוקף ומעבירים לבירור','פודים כרגיל','קורעים']},{q:'מכונת הספירה מראה סכום שונה. מה עושים?',o:['סופרים שוב ומדווחים למנהל','מתעלמים','לוקחים את ההפרש']}]);return{q:sv.q,o:sv.o,a:sv.o[0]}}
+ const sv=pick(JOB_Q[id]);return{q:sv.q,o:sv.o,a:sv.o[0]}}
+const jobRank=j=>Math.min(3,Math.floor((j.shifts||0)/4)),jobPay=(id,acc,rank)=>Math.round(JOBS[id].base*(1+.2*rank)*(.4+.6*acc));
+function jobPlace(id){return places.find(p=>p.id===JOBS[id].place)}
+function issueCheck(amount,from){state.checks.push({id:Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),amount,from});if(state.checks.length>30)state.checks.shift()}
+function startInterview(id){const j=JOBS[id];if(state.level<j.level){toast('🔒 צריך רמה '+j.level+' כדי להתראיין ל'+j.name);return}if(state.job&&state.job.id===id){toast('אתה כבר עובד בתור '+j.name);return}const wait=(state.interviewAt[id]||0)-Date.now();if(wait>0){toast('⏳ אפשר להתראיין שוב בעוד '+Math.ceil(wait/1000)+' שניות');return}
+ const qs=[pick(GENERAL_Q),...shuffled(JOB_Q[id]).slice(0,2)];askInterview(id,qs,0,0)}
+function askInterview(id,qs,i,score){const j=JOBS[id],q=qs[i],opts=shuffled(q.o.map((t,k)=>({t,ok:k===0})));
+ openModal('🎤 ראיון עבודה: '+j.name,'שאלה '+(i+1)+' מתוך '+qs.length+' — '+q.q,opts.map(o=>({title:o.t,sub:'',cooldownMs:0,run:()=>{const sc=score+(o.ok?1:0);if(i+1<qs.length){askInterview(id,qs,i+1,sc);return}
+  if(sc>=2){state.job={id,shifts:0,warnings:0};openModal('🎉 התקבלת לעבודה!','התקבלת כ'+j.name+' ב'+j.employer+'. '+(j.place==='job'?'התחל משמרות כאן במרכז העבודות.':'לך אל '+jobPlace(id).name+' ולחץ E כדי להתחיל משמרת.')+' השכר מגיע בצ׳ק — צריך לפדות אותו בבנק.',[{title:'מעולה!',sub:'',cooldownMs:0,run:closeModal}]);toast('🎉 התקבלת לעבודה: '+j.name);syncProfile()}
+  else{state.interviewAt[id]=Date.now()+40000;openModal('😕 לא התקבלת',(sc===0?'התשובות שלך לא התאימו לעבודה.':'היית קרוב, אבל לא מספיק.')+' אפשר להתראיין שוב בעוד 40 שניות.',[{title:'הבנתי',sub:'',cooldownMs:0,run:closeModal}])}}})))}
+function showJobCenter(){const j=state.job&&JOBS[state.job.id],items=[];
+ if(j){const rk=jobRank(state.job);items.push({title:'💼 העבודה שלך: '+j.emoji+' '+j.name,sub:j.employer+' · דרגה: '+RANKS[rk]+' · '+state.job.shifts+' משמרות · אזהרות '+state.job.warnings+'/3 · שכר '+fmt(jobPay(state.job.id,1,rk))+' למשמרת',cooldownMs:0,run:()=>{}});
+  if(j.place==='job')items.push({title:'▶️ התחל משמרת',sub:'3 משלוחים, כל אחד בזמן מוגבל',cooldownMs:0,run:()=>{closeModal();startShift()}});
+  items.push({title:'🚪 התפטר',sub:'תוכל להתראיין שוב לעבודה אחרת',cooldownMs:0,run:()=>{state.job=null;toast('התפטרת מהעבודה');syncProfile();showJobCenter()}})}
+ for(const [id,jb] of Object.entries(JOBS))items.push({title:(state.level<jb.level?'🔒 ':'🎤 ')+jb.emoji+' ראיון: '+jb.name+' · '+fmt(jb.base)+' למשמרת',sub:'רמה '+jb.level+'+ · '+jb.employer+(state.job&&state.job.id!==id?' · מחליף את העבודה הנוכחית':''),cooldownMs:0,run:()=>startInterview(id)});
+ openModal('🧰 מרכז עבודות',j?'אתה מועסק כ'+j.name+'. כדי לעבוד גש למקום העבודה ולחץ E. השכר מגיע בצ׳ק שנפדה בבנק.':'אין לך עבודה. כל משרה דורשת ראיון עבודה ורמה מתאימה. אחרי ראיון מוצלח עובדים משמרות אמיתיות ומקבלים צ׳ק.',items)}
+function showWorkMenu(p){const j=JOBS[state.job.id],rk=jobRank(state.job);openModal(p.emoji+' '+p.name+' · '+j.name,'דרגה: '+RANKS[rk]+' · '+state.job.shifts+' משמרות · אזהרות '+state.job.warnings+'/3. משמרת נמשכת כדקה וצריך להישאר בעמדה.',[
+ {title:'▶️ התחל משמרת',sub:'שכר עד '+fmt(jobPay(state.job.id,1,rk))+' בצ׳ק',cooldownMs:0,run:()=>{closeModal();startShift()}},
+ {title:p.emoji+' שירותי '+p.name+' כרגיל',sub:'כמו לקוח רגיל',cooldownMs:0,run:()=>{closeModal();usePlace(p,true)}}])}
+// --- shift engine ---
+let shift=null;const TASK_AT=[8,24,40,56],SHIFT_LEN=72,TASK_TIME=14000,shiftCard=document.getElementById('shiftCard');
+let shiftTarget=null;
+function startShift(){if(!state.job||shift||ride||player.dead)return;const j=JOBS[state.job.id],now=Date.now();if(state.jobCooldown>now){toast('⏳ המשמרת הבאה תהיה זמינה בעוד '+Math.ceil((state.jobCooldown-now)/1000)+' שניות');return}if(state.energy<20){toast('😴 אתה עייף מדי לעבוד. תנוח או תאכל משהו');return}
+ shift={id:state.job.id,type:j.type,start:now,next:0,card:null,correct:0,wrong:0,away:0,stops:0,done:0,stopDeadline:0};
+ if(j.type==='field')nextDelivery();toast('🟢 המשמרת התחילה! '+(j.type==='desk'?'הישאר בעמדה וענה נכון ללקוחות':'הבא את 3 המשלוחים בזמן'));renderShiftCard()}
+function nextDelivery(){const[x,y]=randomOpenSpot(450,1200);shiftTarget={x,y,name:'משלוח'};shift.stopDeadline=Date.now()+75000}
+function abortShift(msg,warn){if(!shift)return;shift=null;shiftTarget=null;shiftCard.style.display='none';if(msg)toast(msg);if(warn&&state.job){state.job.warnings++;checkFired()}state.jobCooldown=Date.now()+15000;syncProfile()}
+function checkFired(){if(state.job&&state.job.warnings>=3){const nm=JOBS[state.job.id].name;state.job=null;state.interviewAt[Object.keys(JOBS).find(k=>JOBS[k].name===nm)]=Date.now()+90000;openModal('📄 פוטרת',' קיבלת 3 אזהרות ופוטרת מהעבודה כ'+nm+'. אפשר להתראיין שוב בעוד דקה וחצי.',[{title:'הבנתי',sub:'',cooldownMs:0,run:closeModal}])}else if(state.job)toast('⚠️ אזהרה '+state.job.warnings+'/3 בעבודה')}
+function finishShift(){const sh=shift,j=JOBS[sh.id];shift=null;shiftTarget=null;shiftCard.style.display='none';
+ const total=sh.type==='desk'?TASK_AT.length:3,good=sh.type==='desk'?sh.correct:sh.done,acc=good/total,rk=jobRank(state.job),pay=jobPay(sh.id,acc,rk);
+ state.job.shifts++;if(sh.type==='field')state.activities.delivery=(state.activities.delivery||0)+sh.done;state.energy=Math.max(0,state.energy-15);state.jobCooldown=Date.now()+20000;
+ if(acc<.5){state.job.warnings++}else if(acc>=.75&&state.job.warnings>0)state.job.warnings--;
+ const newRk=jobRank(state.job);issueCheck(pay,j.employer);addTxn('צ׳ק משכורת · '+j.employer,pay,'chk');addXP(Math.round(10+acc*25));
+ toast('📄 סיימת משמרת ('+good+'/'+total+') וקיבלת צ׳ק על '+fmt(pay)+'. פדה אותו בבנק!');
+ if(newRk>rk)toast('🏅 קודמת לדרגה: '+RANKS[newRk]+' — שכר גבוה יותר!');
+ progressStory(1,2,150,20,'המשמרת הושלמה! עכשיו לך לארקייד');
+ if(acc<.5)checkFired();updateHud();syncProfile()}
+function showTaskCard(){const t=makeTask(shift.id);shift.card={t,opts:shuffled(t.o),deadline:Date.now()+TASK_TIME};renderShiftCard()}
+function answerTask(opt){if(!shift||!shift.card)return;const ok=opt===shift.card.t.a;if(ok)shift.correct++;else shift.wrong++;fx.push({x:player.x,y:player.y-30,text:ok?'✔ נכון':'✖ טעות',color:ok?'#7ee787':'#ff6b6b',t:Date.now()});shift.card=null;shift.next++;renderShiftCard()}
+function renderShiftCard(){if(!shift){shiftCard.style.display='none';return}const j=JOBS[shift.id];shiftCard.style.display='block';shiftCard.innerHTML='';
+ const head=document.createElement('div');head.className='sh-head';const l=document.createElement('span');l.textContent=j.emoji+' משמרת: '+j.name;const r=document.createElement('span');r.id='shTime';head.append(l,r);shiftCard.appendChild(head);
+ const bar=document.createElement('div');bar.className='sh-bar';const fill=document.createElement('i');fill.id='shFill';bar.appendChild(fill);shiftCard.appendChild(bar);
+ if(shift.type==='desk'&&shift.card){const q=document.createElement('div');q.className='sh-q';q.textContent=shift.card.t.q;shiftCard.appendChild(q);const o=document.createElement('div');o.className='sh-opts';for(const t of shift.card.opts){const b=document.createElement('button');b.textContent=t;b.onclick=()=>answerTask(t);o.appendChild(b)}shiftCard.appendChild(o);const tm=document.createElement('div');tm.className='sh-t';tm.id='shTask';shiftCard.appendChild(tm)}
+ else{const q=document.createElement('div');q.className='sh-q';q.id='shInfo';shiftCard.appendChild(q)}}
+function updateShift(dt,now){if(!shift)return;const j=JOBS[shift.id];
+ if(player.dead){abortShift('',false);return}
+ const tEl=document.getElementById('shTime'),fill=document.getElementById('shFill'),info=document.getElementById('shInfo');
+ if(shift.type==='desk'){const pl=jobPlace(shift.id),dist=Math.hypot(player.x-(pl.x+pl.w/2),player.y-(pl.y+pl.h/2)),elapsed=(now-shift.start)/1000;
+  if(dist>240){shift.away+=dt;if(info)info.textContent='⚠️ חזור לעמדה! '+Math.max(0,Math.ceil((8000-shift.away)/1000))+' שניות';if(shift.away>8000){abortShift('🚫 עזבת את העמדה — המשמרת בוטלה ללא שכר',true);return}}else{shift.away=0;if(info)info.textContent='עובד… משימות: '+shift.next+'/'+TASK_AT.length+' · נכון: '+shift.correct}
+  if(!shift.card&&shift.next<TASK_AT.length&&elapsed>=TASK_AT[shift.next]){if(dist>240){shift.next++}else showTaskCard()}
+  if(shift.card&&now>shift.card.deadline){shift.wrong++;shift.card=null;shift.next++;toast('⌛ לקוח חיכה יותר מדי');renderShiftCard()}
+  if(shift.card){const tk=document.getElementById('shTask');if(tk)tk.style.width=Math.max(0,(shift.card.deadline-now)/TASK_TIME*100)+'%'}
+  if(tEl)tEl.textContent=Math.max(0,Math.ceil(SHIFT_LEN-elapsed))+' שנ׳';if(fill)fill.style.width=Math.min(100,elapsed/SHIFT_LEN*100)+'%';
+  if(shift.next>=TASK_AT.length&&!shift.card&&elapsed>=SHIFT_LEN-6){finishShift()}}
+ else{if(shiftTarget&&Math.hypot(player.x-shiftTarget.x,player.y-shiftTarget.y)<48){shift.done++;shift.stops++;toast('📦 משלוח '+shift.stops+'/3 נמסר!');if(shift.stops>=3){finishShift();return}nextDelivery()}
+  else if(shiftTarget&&now>shift.stopDeadline){shift.stops++;toast('⌛ המשלוח התקרר — איחרת');if(shift.stops>=3){finishShift();return}nextDelivery()}
+  const left=shiftTarget?Math.max(0,Math.ceil((shift.stopDeadline-now)/1000)):0;if(tEl)tEl.textContent=left+' שנ׳';if(fill)fill.style.width=Math.min(100,shift.stops/3*100)+'%';if(info)info.textContent='📦 משלוח '+(shift.stops+1)+'/3 — הגע לסמן במפה · נמסרו: '+shift.done}}
+function showBank(){const items=[];const tot=state.checks.reduce((a,c)=>a+c.amount,0);
+ if(state.checks.length){items.push({title:'📄 פדה את כל הצ׳קים למזומן · '+fmt(tot),sub:state.checks.length+' צ׳קים',cooldownMs:0,run:()=>{state.cash+=tot;state.checks=[];addTxn('פדיון צ׳קים',tot);toast('פדית צ׳קים בסך '+fmt(tot)+' למזומן 💵');syncProfile();showBank()}});
+  items.push({title:'🏦 הפקד את כל הצ׳קים לחשבון · '+fmt(tot),sub:'הכסף נכנס ישר לבנק',cooldownMs:0,run:()=>{state.bank+=tot;state.checks=[];addTxn('צ׳קים הופקדו לחשבון',tot);toast('הופקדו '+fmt(tot)+' לחשבון הבנק 🏦');syncProfile();showBank()}});
+  state.checks.slice(0,4).forEach(c=>items.push({title:'📄 צ׳ק מ'+c.from+' · '+fmt(c.amount),sub:'פדה למזומן',cooldownMs:0,run:()=>{state.cash+=c.amount;addTxn('פדיון צ׳ק · '+c.from,c.amount);state.checks=state.checks.filter(x=>x!==c);toast('פדית צ׳ק על '+fmt(c.amount));syncProfile();showBank()}}))}
+ items.push({title:'🏧 הפקדות ומשיכות במזומן',sub:'רק בכספומט — יש כספומטים ליד הבנק, הסופר, התחנה, הארקייד, העירייה והשוק',cooldownMs:0,run:()=>toast('🏧 חפש כספומט ברחוב (גם במפה)')});
+ openModal('🏦 הבנק המרכזי',state.checks.length?'יש לך '+state.checks.length+' צ׳קים לפדיון בסך '+fmt(tot)+'. הכסף שבבנק נשמר גם כשיוצאים מהמשחק.':'הכסף שבבנק נשמר גם כשיוצאים מהמשחק. שכר מהעבודה מגיע בצ׳ק — פדה אותו כאן.',items)}
+// ===== Shops & places: inventory, food, mini-games and activities =====
+const ITEMS={
+ water:{n:'בקבוק מים',e:'💧',p:15,en:10},juice:{n:'מיץ סחוט',e:'🧃',p:25,en:15,hp:5},energyDrink:{n:'שתייה אנרגטית',e:'⚡',p:50,en:35},protein:{n:'שייק חלבון',e:'🥛',p:45,en:25,hp:8},
+ sandwich:{n:'כריך',e:'🥪',p:40,en:20,hp:10},pizza:{n:'פיצה',e:'🍕',p:80,en:30,hp:15},salad:{n:'סלט טרי',e:'🥗',p:35,en:10,hp:15},soup:{n:'מרק חם',e:'🍲',p:30,en:15,hp:12},
+ bandage:{n:'תחבושת',e:'🩹',p:30,hp:25},painkiller:{n:'משכך כאבים',e:'💊',p:45,hp:35},firstaid:{n:'ערכת עזרה ראשונה',e:'🧰',p:60,hp:60},
+ coffee:{n:'קפה',e:'☕',p:20,en:12},espresso:{n:'אספרסו כפול',e:'☕',p:25,en:22},cake:{n:'עוגה',e:'🍰',p:45,hp:20,en:8},croissant:{n:'קרואסון',e:'🥐',p:22,en:12,hp:4},
+ burekas:{n:'בורקס',e:'🥐',p:32,en:18,hp:6},baguette:{n:'בגט טרי',e:'🥖',p:18,en:14},falafel:{n:'מנת פלאפל',e:'🥙',p:28,en:22,hp:8},shawarma:{n:'שווארמה',e:'🌯',p:45,en:30,hp:12},
+ hummus:{n:'חומוס',e:'🥣',p:30,en:20,hp:8},shake:{n:'שייק פירות',e:'🥤',p:22,en:12,hp:5},orange:{n:'שקית תפוזים',e:'🍊',p:25,en:8,hp:10},apple:{n:'תפוחים',e:'🍎',p:18,en:6,hp:8},
+ tomato:{n:'עגבניות',e:'🍅',p:15,en:4,hp:6},watermelon:{n:'אבטיח',e:'🍉',p:40,en:25,hp:6},icecream:{n:'גלידה',e:'🍦',p:20,en:8,hp:4}};
+if(!state.items||typeof state.items!=='object')state.items={};
+const dealId=()=>{const ids=Object.keys(ITEMS);return ids[Math.floor(Date.now()/86400000)%ids.length]},itemPrice=id=>id===dealId()?Math.round(ITEMS[id].p*.7):ITEMS[id].p;
+const eff=it=>[it.hp?'+'+it.hp+' חיים':'',it.en?'+'+it.en+' אנרגיה':''].filter(Boolean).join(' · ');
+function applyItem(id){const it=ITEMS[id];if(it.en)state.energy=Math.min(100,state.energy+it.en);if(it.hp)state.hp=Math.min(100,state.hp+it.hp);addXP(2);updateHud();syncProfile();toast(it.e+' '+it.n+' · '+eff(it))}
+function buyItem(id,eat){if(!payWith(itemPrice(id),ITEMS[id].n))return false;if(eat)applyItem(id);else{state.items[id]=(state.items[id]||0)+1;toast('🛍️ '+ITEMS[id].n+' בתיק ('+state.items[id]+')')}syncProfile();return true}
+function useItem(id){if(!(state.items[id]>0))return false;const it=ITEMS[id];if((!it.hp||state.hp>=100)&&(!it.en||state.energy>=100)){toast('אין צורך כרגע');return false}state.items[id]--;if(!state.items[id])delete state.items[id];applyItem(id);return true}
+function quickHeal(){if(player.dead||state.hp>=100)return;const c=Object.keys(state.items).filter(id=>state.items[id]>0&&ITEMS[id]&&ITEMS[id].hp).sort((a,b)=>ITEMS[a].hp-ITEMS[b].hp);if(!c.length){toast('אין לך תחבושות או אוכל בתיק. קנה בסופרמרקט 🛒');return}const need=100-state.hp;useItem(c.find(id=>ITEMS[id].hp>=need)||c[c.length-1])}
+function openMenu(title,desc,items,back){if(back)items=[...items,{title:'↩ חזרה',sub:'',cooldownMs:0,run:back}];openModal(title,desc,items)}
+function foodItems(ids,eatHere,again,hook){return ids.map(id=>{const it=ITEMS[id],deal=id===dealId();return{title:it.e+' '+it.n+' · '+fmt(itemPrice(id))+(deal?' 🔥 מבצע':''),sub:eff(it)+(eatHere?' · אוכלים במקום':' · נכנס לתיק (יש '+(state.items[id]||0)+')'),cooldownMs:0,run:()=>{if(buyItem(id,eatHere)&&hook)hook(id);again()}}})}
+const act=(title,sub,run,cd=3000)=>({title,sub,cooldownMs:cd,run});
+function showBag(){const have=Object.keys(state.items).filter(id=>state.items[id]>0&&ITEMS[id]),items=have.map(id=>({title:ITEMS[id].e+' '+ITEMS[id].n+' ×'+state.items[id],sub:eff(ITEMS[id])+' · לחץ להשתמש',cooldownMs:0,run:()=>{useItem(id);showBag()}}));
+ openModal('🎒 התיק האישי שלך','🚗 רכבים: '+(state.ownedCars.join(' · ')||'עוד אין')+'\n🐾 חבר: '+(state.pet||'עוד אין')+'\n🃏 קלפים: '+(state.collectibles.length?state.collectibles.join(' · '):'האוסף ריק')+'\n🏡 בית: '+(state.hasHouse?'רמה '+(state.homeLevel+1):'עוד אין')+'\n💪 כוח '+(state.activities.strength||0)+' · 🏃 סיבולת '+(state.activities.endurance||0)+(have.length?'\nלחץ H כדי להשתמש בעזרה ראשונה מהתיק.':'\nהתיק ריק. אפשר לקנות אוכל ותחבושות בסופרמרקט.'),items)}
+// --- supermarket ---
+function showShop(){const d=ITEMS[dealId()];openModal('🛒 סופרמרקט','🔥 מבצע היום: '+d.e+' '+d.n+' ב־30% הנחה! כל הקניות נכנסות לתיק — אפשר להשתמש מתי שרוצים, או ללחוץ H לעזרה ראשונה.',[
+ act('🥤 משקאות','מים, מיץ, שתייה אנרגטית, שייק חלבון',()=>shopCat('משקאות',['water','juice','energyDrink','protein']),0),
+ act('🍽️ אוכל מוכן','כריך, פיצה, סלט, מרק',()=>shopCat('אוכל מוכן',['sandwich','pizza','salad','soup']),0),
+ act('🩹 עזרה ראשונה','תחבושת, משכך כאבים, ערכת עזרה ראשונה',()=>shopCat('עזרה ראשונה',['bandage','painkiller','firstaid']),0),
+ act('🧺 סל משפחתי · '+fmt(150),'3 כריכים, 2 מים ותחבושת (חיסכון)',()=>{if(!payWith(150,'סל משפחתי'))return;for(const [id,n] of [['sandwich',3],['water',2],['bandage',1]])state.items[id]=(state.items[id]||0)+n;toast('🧺 הסל נכנס לתיק');syncProfile()},0),
+ act('🎟️ כרטיס גירוד · '+fmt(20),'זכייה עד ₪300',()=>{if(!payWith(20,'כרטיס גירוד'))return;const r=Math.random(),w=r<.65?0:r<.85?20:r<.95?50:r<.99?100:300;if(w){state.cash+=w;addTxn('כרטיס גירוד',w);toast('🎟️ זכית ב־'+fmt(w)+'!')}else toast('🎟️ לא זכית הפעם')},1500),
+ act('🔢 לוטו שבועי · '+fmt(50),'בחר מספר 1–5, פרס ₪200',()=>openMenu('🔢 לוטו','בחר מספר. אם הוא יוצא — זכית ב־₪200.',[1,2,3,4,5].map(n=>({title:'מספר '+n,sub:fmt(50),cooldownMs:0,run:()=>{if(!payWith(50,'לוטו'))return;const win=1+Math.floor(Math.random()*5);if(win===n){state.cash+=200;addTxn('זכייה בלוטו',200);toast('🎉 זכית בלוטו! '+fmt(200))}else toast('יצא '+win+'. בפעם הבאה!')}})),showShop),0),
+ act('🎒 פתח את התיק','מה יש לך',showBag,0)])}
+function shopCat(name,ids){openMenu('🛒 סופרמרקט · '+name,'כל קנייה נכנסת לתיק.',foodItems(ids,false,()=>shopCat(name,ids)),showShop)}
+// --- market ---
+const LOOKS=[['יומי','#2675c8','#3b2a24',0],['ספורט','#33a878','#141414',60],['חגיגי','#9656cf','#d8a53e',90],['קיצי','#ef9d32','#a74435',70]];
+function showMarket(){openModal('🧺 שוק העיר','דוכני פירות, ירקות, בגדים ומיקוח. מותר להתמקח, אבל לא עם היונה.',[
+ act('🍊 פירות וירקות','תפוזים, תפוחים, עגבניות, אבטיח',()=>marketFruit(),0),
+ act('🤝 התמקחות על ארגז פירות','מחיר ₪60 · כמה תציע?',()=>haggle(),0),
+ act('👕 דוכן בגדים','החלף חולצה ושיער',()=>lookShop(),0),
+ act('🧺 לעזור לסוחר לסדר ארגזים','עבודה קצרה · ₪45 ו־12 XP',()=>rewardActivity('marketWork',45,12,'סידרת ארגזים. הסוחר נתן לך טיפ'),12000),
+ act('🎒 פתח את התיק','',showBag,0)])}
+function marketFruit(){openMenu('🧺 שוק · פירות וירקות','כל קנייה נכנסת לתיק.',foodItems(['orange','apple','tomato','watermelon'],false,marketFruit),showMarket)}
+function haggle(){openMenu('🤝 התמקחות','ארגז הפירות עולה ₪60 (3 סלסלות פירות). ככל שההצעה נמוכה יותר — הסיכוי נמוך יותר.',[[30,.25],[45,.6],[55,.95]].map(([o,pr])=>({title:'להציע '+fmt(o),sub:'סיכוי להצליח: '+Math.round(pr*100)+'%',cooldownMs:0,run:()=>{if(!payWith(0,'')){}if(state.cash<o){toast('אין מספיק מזומן');return}if(Math.random()<pr){state.cash-=o;state.items.orange=(state.items.orange||0)+3;toast('🤝 הסוחר הסכים! 3 תפוזים בתיק ב־'+fmt(o));syncProfile()}else toast('הסוחר סירב: "לא ירד עוד שקל!"')}})),showMarket)}
+function lookShop(){openMenu('👕 דוכן בגדים','בחר מראה. קנייה חד־פעמית, אחר כך מחליפים בחינם.',LOOKS.map(([n,c,h,pr])=>{const own=pr===0||state.activities['look_'+n];return{title:(state.skin.shirt===c?'✅ ':'👕 ')+n+(own?'':' · '+fmt(pr)),sub:own?'מחליפים':'קנייה חד־פעמית',cooldownMs:0,run:()=>{if(!own){if(!payWith(pr,'בגדים'))return;state.activities['look_'+n]=1}state.skin.shirt=c;state.skin.hair=h;syncProfile();toast('לבשת את הסט '+n+' 👔');lookShop()}}}),showMarket)}
+// --- cafe ---
+const RIDDLES=[{q:'מה עולה ולא יורד?',o:['גיל','גשם','בלון']},{q:'יש לו ערים אבל אין בתים, יש הרים אבל אין עצים. מה זה?',o:['מפה','חלום','ספר']},{q:'מה שייך לך אבל אחרים משתמשים בו יותר ממך?',o:['השם שלך','הכסף שלך','הבית שלך']},{q:'כמה חודשים בשנה יש להם 28 ימים?',o:['כולם','אחד','שניים']},{q:'מה אפשר לשבור בלי לגעת בו?',o:['הבטחה','ביצה','מקל']},{q:'מה יש לו מפתחות אבל לא פותח דלתות?',o:['פסנתר','מעגל','ארנק']}];
+const NEWS=['📰 היונה בבנק קיבלה הצעה להיות דוברת הבנק','📰 מחירי הפלאפל יציבים. שמעון: "הטחינה היא הסוד"','📰 קו 90 הפך לקו הכי פופולרי בעיר','📰 חשד: מישהו שילם בצ׳ק על קפה. הקופאי עדיין בודק','📰 פארק העיר: ברווז אחד נתפס מדבר עם הדגים','📰 שוטרים ממליצים: אל תתקפו אנשים, זה לא מסתיים טוב'];
+function showCafe(){openModal('☕ קפה השדרה','מקום להתרענן, לקרוא עיתון ולפגוש שכנים. הכל נאכל במקום.',[
+ ...foodItems(['coffee','espresso','cake','croissant'],true,showCafe),
+ act('🥐 קפה ומאפה · '+fmt(45),'+12 XP',()=>{if(!payWith(45,'קפה ומאפה'))return;state.energy=Math.min(100,state.energy+20);addXP(12);toast('☕ היה טעים!')},0),
+ act('📰 לקרוא עיתון','חינם · +4 XP',()=>{addXP(4);toast(pick(NEWS))},20000),
+ act('🧩 חידת היגיון','ענה נכון וקבל ₪35',()=>{const r=pick(RIDDLES);openMenu('🧩 חידה',r.q,shuffled(r.o).map(t=>({title:t,sub:'',cooldownMs:0,run:()=>{if(t===r.o[0]){state.cash+=35;addXP(10);toast('🧠 נכון! קיבלת ₪35 ו־10 XP')}else toast('לא נכון. התשובה: '+r.o[0]);showCafe()}})))},15000),
+ act('🎤 ערב סטנדאפ · '+fmt(25),'צחוק מרים אנרגיה',()=>{if(!payWith(25,'סטנדאפ'))return;state.energy=Math.min(100,state.energy+10);addXP(15);toast('😂 הצחקת וצחקו איתך! +15 XP')},20000),
+ act('🗣️ לשוחח עם תושבים','חינם · +4 XP',()=>{addXP(4);socket.emit('emote','יושב לקפה ☕');toast('הכרת פנים חדשות בעיר')},6000)])}
+// --- falafel & bakery ---
+function showFalafel(){openModal('🧆 פלאפל שמעון','דוכן שכונתי עם פיתה חמה, סלט וטחינה. שמעון אומר שהיונה חייבת לו 12 שקלים. אוכלים במקום.',[
+ ...foodItems(['falafel','shawarma','hummus','shake'],true,showFalafel,id=>{if(id==='falafel')progressStory(3,4,50,8,'שמעון מצא בקבלה רמז לתחנת האוטובוס')}),
+ act('🏆 אתגר הפלאפל הענק · '+fmt(40),'סיכוי 50% לזכות ב־₪100',()=>{if(!payWith(40,'אתגר פלאפל'))return;if(Math.random()<.5){state.cash+=100;addXP(20);toast('🏆 סיימת את הכל! קיבלת ₪100')}else{state.energy=Math.max(0,state.energy-10);toast('🤢 לא סיימת... ')}},8000),
+ act('🧆 לעזור בדוכן','עבודה קצרה · ₪35 ו־10 XP',()=>rewardActivity('falafelHelp',35,10,'עזרת לשמעון להגיש פיתות 🧆'),15000)])}
+function showBakery(){openModal('🥖 מאפיית רחל','בורקס חם, לחם טרי ועוגות. אוכלים במקום או לוקחים לדרך.',[
+ ...foodItems(['burekas','baguette','croissant','cake'],true,showBakery,id=>{if(id==='burekas')progressStory(5,6,90,18,'המשלוח הושלם! היונה מופיעה כעת בשוק בכל יום')}),
+ act('🎂 עוגת יום הולדת · '+fmt(120),'+40 חיים, +15 אנרגיה, +30 XP',()=>{if(!payWith(120,'עוגת יום הולדת'))return;state.hp=Math.min(100,state.hp+40);state.energy=Math.min(100,state.energy+15);addXP(30);toast('🎂 מזל טוב! היונה ביקשה פרוסה')},6000),
+ act('👩‍🍳 סדנת אפייה · '+fmt(50),'לומדים ומקבלים 2 עוגות לתיק',()=>{if(!payWith(50,'סדנת אפייה'))return;state.items.cake=(state.items.cake||0)+2;addXP(22);toast('👩‍🍳 אפית 2 עוגות! הן בתיק');syncProfile()},30000)])}
+// --- gym ---
+const gymMember=()=>(state.activities.gymUntil||0)>Date.now();
+function showGym(){const st=state.activities.strength||0,en=state.activities.endurance||0,m=gymMember(),f=n=>m?Math.round(n/2):n;
+ openModal('🏋️ מכון הכושר','💪 כוח: '+st+' (כל 5 נקודות: +2 נזק בסכין)  ·  🏃 סיבולת: '+en+' (כל 5: החלמה מהירה יותר)\n'+(m?'✅ מנוי פעיל — אימונים בחצי מחיר ו־XP כפול':'מנוי חודשי חוסך חצי מהמחיר ומכפיל XP'),[
+ act('🏋️ אימון כוח · '+fmt(f(30)),'כוח +1 · עולה 18 אנרגיה',()=>{if(state.energy<20){toast('😴 אתה עייף מדי לאימון');return}if(!payWith(f(30),'אימון כוח'))return;state.energy-=18;state.activities.strength=st+1;addXP(m?40:20);toast('💪 כוח '+(st+1));showGym()},8000),
+ act('🏃 ריצה על המסוע · '+fmt(f(20)),'סיבולת +1 · עולה 12 אנרגיה',()=>{if(state.energy<15){toast('😴 אתה עייף מדי');return}if(!payWith(f(20),'ריצה'))return;state.energy-=12;state.activities.endurance=en+1;addXP(m?28:14);toast('🏃 סיבולת '+(en+1));showGym()},8000),
+ act('🧘 מתיחות ויוגה','חינם · +6 XP · +5 חיים',()=>{state.hp=Math.min(100,state.hp+5);addXP(6);toast('🧘 מרגישים רעננים')},20000),
+ act('🥛 שייק חלבון · '+fmt(itemPrice('protein')),eff(ITEMS.protein),()=>{buyItem('protein',true)},0),
+ act('🎫 מנוי חודשי · '+fmt(300),m?'פעיל — חידוש יוסיף 30 דקות':'30 דקות אמיתיות של הטבות',()=>{if(!payWith(300,'מנוי'))return;state.activities.gymUntil=Math.max(Date.now(),state.activities.gymUntil||0)+30*60000;toast('🎫 המנוי פעיל ל־30 דקות');syncProfile();showGym()},0)])}
+// --- park ---
+function showPark(){openModal('🌳 הפארק העירוני','אגם, שבילים, מקלט חיות ודוכן גלידה. תעשה הפסקה או תרוויח כמה שקלים.',[
+ act('🎣 דיג באגם','דגים, מגפיים ישנים וסיפורי דייגים',()=>{const c=Math.random();if(c<.68)rewardActivity('fishing',40+Math.floor(Math.random()*90),12,'תפסת דג שמן!');else if(c<.88)toast('משכת מגף. הוא לא נושך, רק מסריח 👢');else rewardActivity('fishing',0,8,'היונה קפצה לך על החכה. הישג חברתי!')},4000),
+ act('🏃 מסלול פארקור','מבחן זריזות · ₪70 ו־18 XP · עולה 10 אנרגיה',()=>{if(state.energy<12){toast('😴 אתה עייף מדי');return}state.energy-=10;rewardActivity('parkour',70,18,Math.random()<.5?'קפצת מעל שלושה ארגזים!':'נחתת על המזרן כמו מקצוען!')},6000),
+ act('🐶 מקלט חיות · אימוץ',state.pet?'כבר יש לך '+state.pet:'חבר חדש עוקב אחריך · ₪300',()=>{if(state.pet){toast('כבר יש לך '+state.pet+' שמחכה בבית!');return}if(state.cash<300){toast('האימוץ עולה ₪300');return}state.cash-=300;state.pet=Math.random()<.5?'כלב':'חתול';rewardActivity('adoption',0,20,'אימצת '+state.pet+'!')},2000),
+ act('♻️ איסוף בקבוקים','עבודה נקייה · ₪55 ו־10 XP',()=>rewardActivity('recycle',55,10,'אספת בקבוקים למיחזור ♻️'),10000),
+ act('🧹 ניקיון הפארק','עזרה לעיר · ₪40 ו־12 XP',()=>rewardActivity('cleanup',40,12,'ניקית את הפארק — היונה מודה לך'),10000),
+ ...foodItems(['icecream'],true,showPark),
+ act('🧘 להירגע על הספסל','חינם · +5 XP · +10 אנרגיה',()=>{state.energy=Math.min(100,state.energy+10);addXP(5);toast('איזה כיף בפארק 🌳')},15000),
+ act('📸 לצלם תמונה','חינם · +5 XP',()=>{addXP(5);toast('תמונה נשמרה בזיכרון 😉')},8000)])}
+// --- house ---
+function showHouse(){const items=[act(state.hasHouse?'🏡 '+(state.property?state.property.name:'הבית שלך'):'🏡 קנה נכס',state.hasHouse?(state.mortgage?'משכנתה: נותרו '+fmt(state.mortgage.left):state.property?'הנכס בבעלותך המלאה':'הנכס בבעלותך'):'מ־'+fmt(85000)+' · מזומן או משכנתה',()=>{if(state.hasHouse){if(state.property)showMortgage();else toast('כבר יש לך בית!');return}showProperties()},0)];
+ if(state.hasHouse)items.push(
+  act('🛠️ שיפוץ הבית',state.homeLevel>=3?'הבית משופץ עד הגג':'הגדל הכנסה · '+fmt(600+state.homeLevel*500),()=>{if(state.homeLevel>=3){toast('הבית כבר משופץ עד הגג! 🏡');return}const pr=600+state.homeLevel*500;if(state.cash<pr){toast('השדרוג הבא עולה '+fmt(pr));return}state.cash-=pr;state.homeLevel++;rewardActivity('renovation',0,25,'שדרגת את הבית לרמה '+state.homeLevel+'!');showHouse()},0),
+  act('🌱 גינת ירק',state.gardenAt?'צומחת…':'שתול עגבניות וקצור אחרי דקה',()=>{if(!state.gardenAt){state.gardenAt=Date.now();toast('שתלת עגבניות. חזור בעוד דקה 🍅');syncProfile();return}if(Date.now()-state.gardenAt<60000){toast('הגינה עוד צומחת — '+Math.ceil((60000-Date.now()+state.gardenAt)/1000)+' שנ׳');return}state.gardenAt=0;state.items.tomato=(state.items.tomato||0)+3;rewardActivity('garden',50,15,'קצרת 3 עגבניות טריות! 🍅 הן בתיק');syncProfile()},0),
+  act('🍲 לבשל ארוחה · '+fmt(35),'אנרגיה מלאה',()=>{if(!payWith(35,'מצרכים'))return;state.energy=100;rewardActivity('cooking',0,8,'הכנת ארוחה טעימה — האנרגיה מלאה! 🍲')},10000),
+  act('😴 לישון','+40 חיים ואנרגיה מלאה',()=>{state.energy=100;state.hp=Math.min(100,state.hp+40);addXP(5);toast('😴 ישנת טוב וקמת רענן')},90000));
+ items.push(act('🎒 פתח את התיק','',showBag,0));
+ openModal('🏠 נדל״ן','קנה בית וקבל הכנסה פסיבית כל דקה. בבית אפשר לשפץ, לגדל ירקות, לבשל ולישון.',items)}
+// --- dealer ---
+function showDealer(){const eng=state.activities.engine||0,ep=[800,1500,2500];openModal('🚗 סוכנות רכבים','קנה רכב כדי לזוז מהר יותר. רכב שכבר קנית אפשר לבחור שוב בחינם. אפשר גם לצבוע ולשדרג מנוע.',[
+ act('🛵 קטנוע · ₪600','מהירות ×1.7',()=>buyCar('קטנוע',600,1.7),0),act('🚗 מכונית · ₪1,500','מהירות ×2.5',()=>buyCar('מכונית',1500,2.5),0),act('🏎️ מכונית ספורט · ₪4,000','מהירות ×3.4',()=>buyCar('ספורט',4000,3.4),0),
+ act('🔧 שדרוג מנוע (רמה '+eng+'/3)',eng>=3?'מקסימום':'+10% מהירות · '+fmt(ep[eng]),()=>{if(state.vehicle==='ברגל'){toast('צריך קודם רכב');return}if(eng>=3){toast('המנוע כבר במקסימום');return}if(!payWith(ep[eng],'שדרוג מנוע'))return;state.activities.engine=eng+1;toast('🔧 מנוע משודרג!');showDealer()},0),
+ act('🎨 צביעת הרכב · '+fmt(25),'צבע חדש',()=>{if(!payWith(25,'צבע'))return;const cs=['#e34d4d','#4e8de2','#38b77a','#e2b449','#a458d1','#f3f3f3'];state.carColor=cs[(cs.indexOf(state.carColor)+1)%cs.length]||cs[0];syncProfile();toast('צבע הרכב הוחלף 🎨')},0),
+ act('🏁 מרוץ רחוב · '+fmt(25),'עד ₪120 בפרס',()=>{if(state.vehicle==='ברגל'){toast('צריך רכב כדי להתחרות');return}if(!payWith(25,'דמי הרשמה'))return;if(Math.random()<.3+state.vehicleSpeed*.1)rewardActivity('race',120,22,'ניצחת במרוץ!');else toast('הגעת למקום שני — היונה זכתה בגביע 🐦')},8000),
+ act('🚶 לצאת מהרכב','לחזור להליכה',()=>{state.vehicle='ברגל';state.vehicleSpeed=1;toast('יצאת מהרכב')},0)])}
+// --- arcade ---
+const CARDS=['היונה עם המפתח','האוטובוס האחרון','ספל הקפה של ראש העיר','מכונית הספורט הסגולה','הדג ששוקל טון','הכוס של שמעון','תחנת האוטובוס הנוסעת','בית העירייה המוזהב'];
+function showArcade(){openModal('🕹️ ארקייד פיקסל','משחקים, קלפים ופרסים. להוכיח שהיונה לא באמת אלופת העולם.',[
+ act('🎮 אתגר מכונת הפרסים · ₪20','זכייה: ₪100 ו־15 XP',()=>{if(state.cash<20){toast('חסרים לך ₪20 למשחק');return}state.cash-=20;if(Math.random()<.55){state.cash+=100;addXP(15);toast('ניצחת! היונה דורשת משחק חוזר 🏆')}else toast('כמעט! היונה חגגה מוקדם מדי 🐦')},4000),
+ act('🧠 משחק זיכרון · ₪15','זכור את הרצף וקבל ₪60',()=>{const pool=['🍎','🚗','⭐','🐦','🔔','🎲','🍕','🚌'],seq=shuffled(pool).slice(0,4);if(!payWith(15,'משחק זיכרון'))return;openModal('🧠 משחק זיכרון','זכור את הרצף: '+seq.join(' ')+'  — לחץ כשאתה מוכן',[{title:'אני זוכר!',sub:'',cooldownMs:0,run:()=>{const wrong=[shuffled(seq),shuffled(seq)].map(a=>a.join(' ')),right=seq.join(' '),opts=shuffled([right,...wrong.filter(w=>w!==right)]);openModal('🧠 מה היה הרצף?','בחר את הרצף הנכון',opts.map(o=>({title:o,sub:'',cooldownMs:0,run:()=>{if(o===right){state.cash+=60;addXP(12);toast('🧠 זיכרון מצוין! +₪60')}else toast('לא נכון. היה: '+right);showArcade()}})))}}])},8000),
+ act('🃏 חבילת קלפים · ₪25','מצא קלף אספנות',()=>{if(!payWith(25,'חבילת קלפים'))return;const card=pick(CARDS);if(state.collectibles.includes(card)){state.cash+=10;toast('הקלף "'+card+'" כבר אצלך — קיבלת ₪10 בחזרה')}else{state.collectibles.push(card);rewardActivity('collectible',0,10,'קלף חדש: '+card+' 🃏 ('+state.collectibles.length+'/'+CARDS.length+')')}},2000),
+ act('📜 משימת הסיפור','עזור לראש העיר לנצח את היונה',()=>{if(state.storyStep===2)progressStory(2,3,250,35,'ניצחת את היונה בגמר הארקייד! ראש העיר שולח אותך להכיר את עסקי העיר');else if(state.storyStep>=6)toast('הסיפור הושלם! היונה עובדת עכשיו בדוכן פופקורן 🍿');else toast('קודם צריך לקחת משימה בבית העירייה ולבצע משמרת')},0),
+ act('🕺 ריקוד ניצחון','בחינם · כולם רואים',()=>{socket.emit('emote','רוקד בארקייד 🕺');addXP(3)},5000)])}
+// --- city hall ---
+function showCityHall(){openModal('🏛️ בית העירייה','ראש העיר קיבל אתכם לעבודה. הוא מבקש להשיב מפתח אבוד, אך קודם צריך להכיר את העיר.',[
+ act('🗝️ לדבר עם ראש העיר','התחל את הסיפור וקבל משימה',()=>{if(state.storyStep===0)progressStory(0,1,120,15,'מצאת את המפתח מתחת לכובע של היונה. עכשיו לך לעבוד');else toast('ראש העיר אומר: קודם תעשה משמרת, אחר כך נדבר על היונה.')},0),
+ act('📋 חוזה יומי','משימה משתנה · פרס פעם ביום',()=>{const day=new Date().toISOString().slice(0,10);if(state.dailyContractsDay===day){toast('החוזה היומי כבר הושלם. מחר תקבל חדש!');return}const jobs=[['משלוחים',state.activities.delivery||0,2],['פארקור',state.activities.parkour||0,1],['דיג',state.activities.fishing||0,1],['ניקיון',state.activities.cleanup||0,2]];const job=jobs[Math.floor(Date.now()/86400000)%jobs.length];if(job[1]-(state.activities['dailyStart_'+job[0]]||0)<job[2]){state.activities['dailyStart_'+job[0]]=job[1];toast('החוזה: '+job[0]+' × '+job[2]+' — בצע ואז חזור');return}state.dailyContractsDay=day;state.dailyContracts=(state.dailyContracts||0)+1;rewardActivity('contracts',300,35,'החוזה היומי הושלם!')},0),
+ act('🧭 מפת אוצר · ₪30','סמן אוצר במפה הקטנה',()=>{if(!payWith(30,'מפת אוצר'))return;const sp=randomOpenSpot(600,2600);state.treasure={x:sp[0],y:sp[1]};syncProfile();toast('האוצר מסומן במפה הקטנה 💎')},30000),
+ act('🧹 לסדר את העירייה','עזרה קטנה · +8 XP',()=>{addXP(8);toast('סידרת את הטפסים. היונה הגישה בקשה להנחה בארנונה')},10000)])}
+const PLACE_MENUS={shop:showShop,market:showMarket,cafe:showCafe,falafel:showFalafel,bakery:showBakery,gym:showGym,park:showPark,house:showHouse,dealer:showDealer,arcade:showArcade,cityhall:showCityHall};
+function vis(x,y,w,h,m=80){return x+w>camX-m&&x<camX+W+m&&y+h>camY-m&&y<camY+H+m}
+function drawBusStop(st){ctx.fillStyle='#0004';ctx.fillRect(st.sx-22,st.sy-9,48,26);ctx.fillStyle='#2c6f73';ctx.fillRect(st.sx-24,st.sy-13,48,7);ctx.fillStyle='#9fd3d8cc';ctx.fillRect(st.sx-22,st.sy-6,44,16);ctx.fillStyle='#5a4a3a';ctx.fillRect(st.sx-18,st.sy+3,36,3);
+ctx.fillStyle='#d9e2ea';ctx.fillRect(st.sx+27,st.sy-30,3,34);ctx.fillStyle=st.line.color;ctx.beginPath();ctx.arc(st.sx+28.5,st.sy-32,11,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 9px Arial';ctx.fillText(st.no,st.sx+28.5,st.sy-29);
+ctx.fillStyle='#fff';ctx.font='bold 11px Arial';ctx.fillText('🚏 '+st.name,st.sx,st.sy-20)}
+function drawVehicle(car){const bus=car.type==='bus',w=car.len,h=car.wid;ctx.save();ctx.translate(car.x,car.y);ctx.rotate(car.ang);ctx.fillStyle='#0004';ctx.fillRect(-w/2+3,-h/2+4,w,h);ctx.fillStyle='#202a34';ctx.fillRect(-w/2-2,-h/2-1,w+4,h+2);ctx.fillStyle=car.color;ctx.fillRect(-w/2,-h/2,w,h);ctx.fillStyle='#b7dbe4';
+if(bus){for(let j=0;j<5;j++)ctx.fillRect(-w/2+6+j*11,-h/2+3,9,5);ctx.fillRect(w/2-9,-h/2+3,6,h-6);ctx.fillStyle=car.stopped?'#ffe17c':'#fff3cc';ctx.fillRect(w/2-2,-h/2+2,3,4);ctx.fillRect(w/2-2,h/2-6,3,4)}
+else{ctx.fillRect(-w/2+7,-h/2+3,10,h-6);ctx.fillRect(-w/2+21,-h/2+3,10,h-6);ctx.fillStyle='#fff3cc';ctx.fillRect(w/2-3,-h/2+2,3,4);ctx.fillRect(w/2-3,h/2-6,3,4)}
+ctx.restore();if(bus){ctx.fillStyle='#fff';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText('קו '+car.line,car.x,car.y-16)}}
+function drawWorld(){ctx.fillStyle='#78ae70';ctx.fillRect(camX-10,camY-10,W+20,H+20);
+ const gx0=Math.max(0,Math.floor(camX/90)*90),gy0=Math.max(0,Math.floor(camY/90)*90);ctx.fillStyle='#83b879';for(let y=gy0;y<Math.min(WORLD.h,camY+H+90);y+=90)for(let x=gx0;x<Math.min(WORLD.w,camX+W+90);x+=90)if(((x+y)/90)%2===0)ctx.fillRect(x,y,90,90);
+ for(const z of blockZones){if(!vis(z.x,z.y,z.w,z.h))continue;if(z.type==='park'){ctx.fillStyle='#5fa968';ctx.fillRect(z.x+36,z.y+36,z.w-72,z.h-72);ctx.fillStyle='#c9b98c';ctx.fillRect(z.x+z.w/2-14,z.y+36,28,z.h-72);ctx.fillRect(z.x+36,z.y+z.h/2-14,z.w-72,28)}else{ctx.fillStyle='#4a8f55';ctx.fillRect(z.x+30,z.y+30,z.w-60,z.h-60)}}
+ for(const r of roads){if(!vis(r.x,r.y,r.w,r.h))continue;const horiz=r.w>r.h,a0=horiz?Math.max(0,Math.floor((camX-100)/40)*40):Math.max(0,Math.floor((camY-100)/40)*40),a1=horiz?Math.min(r.w,camX+W+100):Math.min(r.h,camY+H+100);
+  if(horiz){ctx.fillStyle='#b7b8b4';ctx.fillRect(a0,r.y,a1-a0,r.h);ctx.fillStyle='#777e83';ctx.fillRect(a0,r.y+8,a1-a0,r.h-16)}else{ctx.fillStyle='#b7b8b4';ctx.fillRect(r.x,a0,r.w,a1-a0);ctx.fillStyle='#777e83';ctx.fillRect(r.x,a0,r.w,a1-a0)}
+  ctx.strokeStyle='#e9d68c';ctx.lineWidth=3;ctx.setLineDash([22,18]);ctx.beginPath();if(horiz){ctx.moveTo(a0,r.y+r.h/2);ctx.lineTo(a1,r.y+r.h/2)}else{ctx.moveTo(r.x+r.w/2,a0);ctx.lineTo(r.x+r.w/2,a1)}ctx.stroke();ctx.setLineDash([])}
+ for(const t of trees){if(!vis(t.x-t.r,t.y-t.r,t.r*2,t.r*2,20))continue;ctx.fillStyle='#0002';ctx.beginPath();ctx.ellipse(t.x+3,t.y+7,t.r,t.r*.7,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#24613d';ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#39834b';ctx.beginPath();ctx.arc(t.x-3,t.y-3,t.r*.65,0,Math.PI*2);ctx.fill()}
+ for(const b of buildings)if(vis(b.x,b.y-20,b.w+10,b.h+30))drawBuilding(b);
+ for(const p of places)if(vis(p.x,p.y,p.w+10,p.h+10))drawPlace(p);
+ for(const st of busStops)if(vis(st.sx-60,st.sy-50,120,90))drawBusStop(st);
+ remotePlayers.forEach(o=>drawHuman(o.x,o.y,o.color,o.name,false,o.skin||{}));
+ drawPeople();
+ for(const car of trafficCars())if(vis(car.x-40,car.y-40,80,80))drawVehicle(car);
+ if(ride){const st=busState(ride.bus);ctx.fillStyle=state.skin.tone;ctx.beginPath();ctx.arc(st.x,st.y,5,0,Math.PI*2);ctx.fill();ctx.fillStyle=state.skin.hair;ctx.beginPath();ctx.arc(st.x,st.y-1.5,5,Math.PI,Math.PI*2);ctx.fill()}
+ else if(state.vehicle!=='ברגל'){ctx.fillStyle=state.carColor||'#4e8de2';ctx.fillRect(player.x-20,player.y-9,40,20);ctx.fillStyle='#d9edf9';ctx.fillRect(player.x-8,player.y-7,16,14);ctx.fillStyle='#172235';ctx.beginPath();ctx.arc(player.x-13,player.y+10,4,0,Math.PI*2);ctx.arc(player.x+13,player.y+10,4,0,Math.PI*2);ctx.fill()}
+ else drawHuman(player.x,player.y,state.skin.shirt,playerName,player.moving,state.skin);
+ if(player.handsUp&&!ride){ctx.font='20px Arial';ctx.textAlign='center';ctx.fillText('🙌',player.x,player.y-34)}
+ drawWeapon();
+ if(state.pet&&!ride){ctx.font='22px Arial';ctx.textAlign='center';ctx.fillText(state.pet==='כלב'?'🐶':'🐱',player.x-28,player.y+4)}
+ for(const [target,label,color] of [[state.treasure,'💎','#ffe17c'],[state.delivery,'📦','#8de4ff'],[shiftTarget,'📦','#ffb44a'],[waypoint,'📍','#a4f0c0']])if(target){const pulse=16+Math.sin(Date.now()/180)*4;ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();ctx.arc(target.x,target.y,pulse,0,Math.PI*2);ctx.stroke();ctx.fillStyle=color;ctx.font='bold 20px Arial';ctx.textAlign='center';ctx.fillText(label,target.x,target.y-22)}
+ if(currentWeather.includes('גשם')){ctx.strokeStyle='#b9ddff88';ctx.lineWidth=1;for(let i=0;i<70;i++){const rx=camX+(Date.now()/5+i*83)%W,ry=camY+(Date.now()/3+i*137)%H;ctx.beginPath();ctx.moveTo(rx,ry);ctx.lineTo(rx-5,ry+13);ctx.stroke()}}
+ const p=ride?null:nearPlace();if(p){ctx.strokeStyle='#ffe17c';ctx.lineWidth=3;ctx.beginPath();ctx.arc(p.x+p.w/2,p.y+p.h/2,Math.max(p.w,p.h)/2+15,0,Math.PI*2);ctx.stroke();drawKeycap(p.x+p.w/2,p.y-22,'E')}
+}
+// ===== Minimap =====
+const mmEl=document.getElementById('minimap'),mm=mmEl.getContext('2d'),mmBase=document.createElement('canvas');mmBase.width=mmEl.width;mmBase.height=mmEl.height;
+(function(){const c=mmBase.getContext('2d'),sx=mmBase.width/WORLD.w,sy=mmBase.height/WORLD.h;c.fillStyle='#5d8f5a';c.fillRect(0,0,mmBase.width,mmBase.height);for(const z of blockZones){c.fillStyle=z.type==='park'?'#7fc07a':'#3f7a4a';c.fillRect(z.x*sx,z.y*sy,z.w*sx,z.h*sy)}c.fillStyle='#8d9298';for(const r of roads)c.fillRect(r.x*sx,r.y*sy,Math.max(1.2,r.w*sx),Math.max(1.2,r.h*sy));c.fillStyle='#b9a98f';for(const b of buildings)c.fillRect(b.x*sx,b.y*sy,Math.max(1,b.w*sx),Math.max(1,b.h*sy));for(const p of places){c.fillStyle='#ffd166';c.fillRect(p.x*sx-1,p.y*sy-1,3,3)}for(const st of busStops){c.fillStyle=st.line.color;c.fillRect(st.sx*sx-1.5,st.sy*sy-1.5,3,3)}})();
+let mmLast=0,mmHidden=false;
+function drawMinimap(){const now=Date.now();if(now-mmLast<120||mmHidden)return;mmLast=now;const sx=mmEl.width/WORLD.w,sy=mmEl.height/WORLD.h;mm.drawImage(mmBase,0,0);
+ for(const b of buses){const st=busState(b,now);mm.fillStyle=b.line.color;mm.fillRect(st.x*sx-2,st.y*sy-2,4,4)}
+ for(const c of cops){mm.fillStyle='#4aa3ff';mm.fillRect(c.x*sx-2,c.y*sy-2,4,4)}mm.fillStyle='#ffffff';remotePlayers.forEach(o=>mm.fillRect(o.x*sx-1.5,o.y*sy-1.5,3,3));
+ for(const [t,col] of [[state.treasure,'#ffe17c'],[state.delivery,'#8de4ff'],[shiftTarget,'#ffb44a'],[waypoint,'#a4f0c0']])if(t){mm.fillStyle=col;mm.beginPath();mm.arc(t.x*sx,t.y*sy,3.5,0,Math.PI*2);mm.fill()}
+ mm.strokeStyle='#ffffff99';mm.lineWidth=1;mm.strokeRect(camX*sx,camY*sy,W*sx,H*sy);
+ mm.fillStyle='#ff4d4d';mm.beginPath();mm.arc(player.x*sx,player.y*sy,3.5,0,Math.PI*2);mm.fill();mm.strokeStyle='#fff';mm.lineWidth=1.2;mm.stroke()}
+function syncProfile(){if(!profileReady)return;socket.emit('profile:update',{cash:state.cash,bank:state.bank,xp:state.xp,level:state.level,storyStep:state.storyStep,vehicle:state.vehicle,vehicleSpeed:state.vehicleSpeed,hasHouse:state.hasHouse,houseIncome:state.houseIncome,ownedCars:state.ownedCars,skin:state.skin,activities:state.activities,achievements:state.achievements,pet:state.pet,homeLevel:state.homeLevel,carColor:state.carColor,gardenAt:state.gardenAt,energy:state.energy,treasure:state.treasure,delivery:state.delivery,collectibles:state.collectibles,dailyContractsDay:state.dailyContractsDay,dailyContracts:state.dailyContracts,txns:state.txns,job:state.job,checks:state.checks,property:state.property,mortgage:state.mortgage,items:state.items,hp:Math.round(state.hp),weapons:state.weapons,equipped:state.equipped,cooldowns:Object.fromEntries(actionCooldowns),creditCard:state.creditCard,creditLimit:state.creditLimit,creditDebt:state.creditDebt,paymentMethod:state.paymentMethod,x:player.x,y:player.y})}
+function frame(now){const dt=lastFrame?Math.max(0,Math.min(50,now-lastFrame)):1000/60;lastFrame=now;movePlayer(dt);updateCombat(dt);updateShift(dt,Date.now());economyTick();if(profileReady&&Date.now()-lastNet>80){socket.emit('player:move',{x:player.x,y:player.y,vehicle:state.vehicle,handsUp:player.handsUp,skin:state.skin,name:playerName,moving:player.moving});lastNet=Date.now()}if(profileReady&&state.hasHouse&&Date.now()-state.houseIncome>=60000){const raw=Math.floor((Date.now()-state.houseIncome)/60000),ticks=Math.min(30,raw),income=state.property?Math.round(state.property.rent*(1+.1*state.homeLevel)):50+state.homeLevel*20;state.cash+=ticks*income;addTxn('הכנסה מהבית',ticks*income);state.houseIncome+=raw*60000;toast('הבית הכניס '+fmt(ticks*income)+' 🏡');updateHud()}if(profileReady&&Date.now()-lastProfileSync>1500){syncProfile();lastProfileSync=Date.now()}camX=Math.max(0,Math.min(WORLD.w-W,(player.x-W/2)));camY=Math.max(0,Math.min(WORLD.h-H,(player.y-H/2)));ctx.save();ctx.translate(-camX+shake.x,-camY+shake.y);drawWorld();ctx.restore();const phase=(Date.now()%120000)/120000;const dusk=Math.max(0,Math.sin(phase*Math.PI*2-Math.PI/2));if(dusk>.08){ctx.fillStyle='rgba(20,29,70,'+(dusk*.23)+')';ctx.fillRect(0,0,W,H)};showPrompt();drawMinimap();requestAnimationFrame(frame)}
+// ===== v1.15: ATM, real estate + mortgage, video call =====
+if(!('property' in state))state.property=null;
+if(!('mortgage' in state))state.mortgage=null;
+const MONTH=5*60000;
+const spend=n=>{if(state.cash+state.bank<n)return false;const b=Math.min(state.bank,n);state.bank-=b;state.cash-=n-b;return true};
+// --- ATM ---
+function drawATM(p){ctx.fillStyle='#0004';ctx.fillRect(p.x+3,p.y+5,p.w,p.h);ctx.fillStyle='#2b3a4d';ctx.fillRect(p.x,p.y,p.w,p.h);ctx.fillStyle='#37d67a';ctx.fillRect(p.x+5,p.y+6,p.w-10,12);ctx.fillStyle='#0d1828';ctx.fillRect(p.x+8,p.y+22,p.w-16,6);ctx.fillRect(p.x+8,p.y+32,p.w-16,8);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 9px Arial';ctx.fillText('ATM',p.x+p.w/2,p.y+15)}
+function showATM(){
+ const dep=n=>{n=Math.min(n,state.cash);if(n<=0){toast('אין מזומן להפקדה');return}state.cash-=n;state.bank+=n;addTxn('הפקדה בכספומט',n,'xfer');toast('🏧 הופקדו '+fmt(n));syncProfile();showATM()};
+ const wd=n=>{n=Math.min(n,state.bank);if(n<=0){toast('אין כסף בחשבון');return}state.bank-=n;state.cash+=n;addTxn('משיכה מכספומט',n,'xfer');toast('🏧 נמשכו '+fmt(n));syncProfile();showATM()};
+ openModal('🏧 כספומט','יתרה בחשבון: '+fmt(state.bank)+' · מזומן בכיס: '+fmt(state.cash)+'. הפקדת מזומן אפשרית רק בכספומט.',[
+  act('⬆️ הפקד '+fmt(100),'מזומן ← חשבון',()=>dep(100),0),act('⬆️ הפקד '+fmt(500),'מזומן ← חשבון',()=>dep(500),0),act('⬆️ הפקד הכל','כל המזומן',()=>dep(state.cash),0),
+  act('⬇️ משוך '+fmt(100),'חשבון ← מזומן',()=>wd(100),0),act('⬇️ משוך '+fmt(500),'חשבון ← מזומן',()=>wd(500),0),act('⬇️ משוך הכל','כל הכסף בחשבון',()=>wd(state.bank),0)])}
+function placeATMs(){['bank','shop','busStation','arcade','cityhall','market'].forEach((id,i)=>{const a=places.find(p=>p.id===id);if(!a)return;const w=34,h=46;
+ for(let r=14;r<=160;r+=14)for(let k=0;k<16;k++){const ang=k*Math.PI/8,x=Math.round(a.x+a.w/2+Math.cos(ang)*(a.w/2+r+w/2)-w/2),y=Math.round(a.y+a.h/2+Math.sin(ang)*(a.h/2+r+h/2)-h/2);
+  const hit=buildings.some(b=>x<b.x+b.w+8&&x+w>b.x-8&&y<b.y+b.h+8&&y+h>b.y-8)||places.some(p=>x<p.x+p.w+8&&x+w>p.x-8&&y<p.y+p.h+8&&y+h>p.y-8)||onRoad(x,y,6)||onRoad(x+w,y+h,6)||onRoad(x+w,y,6)||onRoad(x,y+h,6);
+  if(!hit){const nid='atm'+(i+1);places.push({id:nid,atm:true,x,y,w,h,name:'כספומט · '+a.name,emoji:'🏧',color:'#2b3a4d',desc:'הפקדה ומשיכה'});PLACE_MENUS[nid]=showATM;return}}})}
+// --- Real estate + mortgage ---
+const PROPS=[{id:'studio',name:'דירת סטודיו',e:'🏢',price:85000,rent:250},{id:'apt',name:'דירת 3 חדרים',e:'🏘️',price:100000,rent:300},{id:'villa',name:'בית פרטי עם גינה',e:'🏡',price:125000,rent:380}];
+function showProperties(){openModal('🏠 נדל״ן למכירה','מחירים אמיתיים: בית עולה כמאה אלף ₪. אפשר לשלם במזומן/מהחשבון או לקחת משכנתה (מקדמה 20%).',PROPS.map(p=>act(p.e+' '+p.name+' · '+fmt(p.price),'מקדמה '+fmt(p.price*.2)+' · הכנסה '+fmt(p.rent)+' לדקה',()=>showBuy(p),0)))}
+function ownProperty(p,paid){state.hasHouse=true;state.property={id:p.id,name:p.name,price:p.price,rent:p.rent};state.houseIncome=Date.now();state.homeLevel=0;addTxn('רכישת '+p.name,-paid);addXP(150);syncProfile();updateHud();openModal('🎉 מזל טוב!','קנית '+p.name+'. הכנסה: '+fmt(p.rent)+' לדקה.'+(state.mortgage?' תשלום משכנתה כל 5 דקות מהחשבון — שמור כסף בבנק!':''),[act('מעולה!','',closeModal,0)])}
+function showBuy(p){const down=Math.round(p.price*.2),loan=p.price-down,total=Math.round(loan*1.15),months=40,pay=Math.ceil(total/months);
+ openModal(p.e+' '+p.name,'מחיר '+fmt(p.price)+'. משכנתה: מקדמה '+fmt(down)+', ריבית כוללת 15%, '+months+' תשלומים של '+fmt(pay)+' כל 5 דקות, חיוב אוטומטי מהחשבון. 3 חיובים שנכשלו = עיקול.',[
+  act('💰 תשלום מלא · '+fmt(p.price),'מהחשבון ואז מהמזומן',()=>{if(state.hasHouse){toast('כבר יש לך נכס — מכור אותו קודם');return}if(!spend(p.price)){toast('חסר לך כסף. סך הכל '+fmt(state.cash+state.bank));return}ownProperty(p,p.price)},0),
+  act('🏦 משכנתה · מקדמה '+fmt(down),'דורש רמה 5 ועבודה עם 8 משמרות לפחות',()=>{if(state.hasHouse){toast('כבר יש לך נכס — מכור אותו קודם');return}if(state.level<5||!state.job||state.job.shifts<8){toast('🏦 הבנק דורש רמה 5 ועבודה קבועה עם 8 משמרות לפחות');return}if(!spend(down)){toast('חסרה מקדמה של '+fmt(down));return}state.mortgage={left:total,pay,months,missed:0,next:Date.now()+MONTH};ownProperty(p,down)},0)])}
+function showMortgage(){const m=state.mortgage,p=state.property,items=[];
+ if(m)items.push(act('💸 סלק את כל המשכנתה · '+fmt(m.left),'מהחשבון ואז מהמזומן',()=>{if(!spend(m.left)){toast('חסר לך כסף לסילוק');return}addTxn('סילוק משכנתה',-m.left);state.mortgage=null;toast('✅ המשכנתה נסגרה');syncProfile();showMortgage()},0));
+ items.push(act('🏷️ מכור את הנכס','90% ממחיר הקנייה פחות יתרת משכנתה',()=>{const net=Math.round(p.price*.9)-(m?m.left:0);if(net<0){toast('היתרה גבוהה משווי המכירה');return}state.bank+=net;addTxn('מכירת '+p.name,net);state.hasHouse=false;state.property=null;state.mortgage=null;state.homeLevel=0;state.gardenAt=0;toast('🏷️ הנכס נמכר. נכנסו '+fmt(net)+' לחשבון');syncProfile();closeModal()},0));
+ openModal('🏠 '+p.name,'שווי '+fmt(p.price)+' · הכנסה '+fmt(Math.round(p.rent*(1+.1*state.homeLevel)))+' לדקה'+(m?' · משכנתה: נותרו '+fmt(m.left)+' ('+m.months+' תשלומים של '+fmt(m.pay)+') · חיובים שנכשלו '+m.missed+'/3':' · ללא משכנתה'),items)}
+function economyTick(){const m=state.mortgage;if(!profileReady||!m||Date.now()<m.next)return;m.next=Date.now()+MONTH;
+ if(state.bank>=m.pay){state.bank-=m.pay;m.left-=m.pay;m.months--;addTxn('תשלום משכנתה',-m.pay);if(m.months<=0){state.mortgage=null;toast('🎉 המשכנתה נפרעה במלואה!')}else toast('🏠 חויבת במשכנתה '+fmt(m.pay)+' · נותרו '+m.months)}
+ else{m.missed++;toast('⚠️ אין כיסוי למשכנתה ('+fmt(m.pay)+')! כשל '+m.missed+'/3');if(m.missed>=3){state.hasHouse=false;state.property=null;state.mortgage=null;state.homeLevel=0;state.gardenAt=0;openModal('📄 עיקול',' הבנק עיקל את הנכס אחרי 3 חיובים שנכשלו. המקדמה אבדה.',[act('הבנתי','',closeModal,0)])}}
+ updateHud();syncProfile()}
+// --- Video call (WebRTC, manual code exchange, camera) ---
+{const d=document.createElement('div');d.id='vc';d.innerHTML='<div class="vcbox"><div class="vcvids"><video id="vcRemote" autoplay playsinline></video><video id="vcLocal" autoplay playsinline muted></video></div><p id="vcMsg" style="font-size:13px;line-height:1.5"></p><textarea id="vcCode" readonly placeholder="הקוד שלך יופיע כאן"></textarea><textarea id="vcIn" placeholder="הדבק כאן את הקוד של הצד השני"></textarea><div class="vcbtns"><button id="vcStartB">📞 התחל שיחה</button><button id="vcJoinB">📲 הצטרף לשיחה</button><button id="vcConnB">🔗 חבר</button><button id="vcCopyB">📋 העתק קוד</button><button id="vcMicB">🎤 מיקרופון</button><button id="vcCamB">📷 מצלמה</button><button id="vcEnd">❌ סיים</button></div></div>';document.body.appendChild(d)}
+let vcPc=null,vcStream=null;const $=id=>document.getElementById(id);
+const vcB=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))),vcU=t=>JSON.parse(decodeURIComponent(escape(atob(t.trim()))));
+const vcMsg=t=>{$('vcMsg').textContent=t};
+function showVideoCall(){closeModal();$('vc').style.display='flex';vcMsg('📹 שיחת וידאו בין שני שחקנים (כל אחד במחשב שלו, עם מצלמה). אחד לוחץ "התחל שיחה" ושולח את הקוד לשני. השני מדביק אותו ולוחץ "הצטרף" ושולח חזרה קוד תשובה. הראשון מדביק אותו ולוחץ "חבר".')}
+function vcStop(keep){if(vcPc){vcPc.close();vcPc=null}if(vcStream){vcStream.getTracks().forEach(t=>t.stop());vcStream=null}$('vcLocal').srcObject=null;$('vcRemote').srcObject=null;if(!keep)$('vc').style.display='none'}
+async function vcInit(){vcStop(true);try{vcStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true})}catch(e){vcMsg('❌ אין גישה למצלמה/מיקרופון. אשר הרשאה בדפדפן (נדרש localhost או https).');return false}
+ $('vcLocal').srcObject=vcStream;vcPc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});vcStream.getTracks().forEach(t=>vcPc.addTrack(t,vcStream));vcPc.ontrack=e=>{$('vcRemote').srcObject=e.streams[0]};vcPc.onconnectionstatechange=()=>{if(vcPc&&vcPc.connectionState==='connected')vcMsg('✅ מחובר! אתם רואים אחד את השני.')};return true}
+const vcIce=()=>new Promise(r=>{if(vcPc.iceGatheringState==='complete')return r();vcPc.onicegatheringstatechange=()=>{if(vcPc&&vcPc.iceGatheringState==='complete')r()};setTimeout(r,4000)});
+$('vcStartB').onclick=async()=>{if(!await vcInit())return;await vcPc.setLocalDescription(await vcPc.createOffer());await vcIce();$('vcCode').value=vcB(vcPc.localDescription);vcMsg('1) העתק ושלח את הקוד לחבר. 2) הדבק למטה את קוד התשובה שלו ולחץ "חבר".')};
+$('vcJoinB').onclick=async()=>{const t=$('vcIn').value;if(!t.trim()){vcMsg('הדבק קודם את הקוד שקיבלת מהחבר.');return}let o;try{o=vcU(t)}catch{vcMsg('❌ קוד לא תקין');return}if(!await vcInit())return;await vcPc.setRemoteDescription(o);await vcPc.setLocalDescription(await vcPc.createAnswer());await vcIce();$('vcCode').value=vcB(vcPc.localDescription);vcMsg('העתק ושלח את קוד התשובה לחבר. החיבור יתחיל כשהוא ילחץ "חבר".')};
+$('vcConnB').onclick=async()=>{if(!vcPc){vcMsg('קודם לחץ "התחל שיחה".');return}try{await vcPc.setRemoteDescription(vcU($('vcIn').value));vcMsg('מתחבר…')}catch{vcMsg('❌ קוד תשובה לא תקין')}};
+$('vcCopyB').onclick=()=>{try{navigator.clipboard.writeText($('vcCode').value);vcMsg('📋 הקוד הועתק')}catch{$('vcCode').select()}};
+$('vcMicB').onclick=()=>vcStream&&vcStream.getAudioTracks().forEach(t=>t.enabled=!t.enabled);
+$('vcCamB').onclick=()=>vcStream&&vcStream.getVideoTracks().forEach(t=>t.enabled=!t.enabled);
+$('vcEnd').onclick=()=>vcStop(false);
+// --- login menu: saved characters ---
+try{const all=JSON.parse(localStorage.getItem('cashEmpireStaticProfiles')||'{}'),box=$('savedChars'),names=Object.values(all).map(p=>p.display).filter(Boolean).slice(0,6);
+ if(box&&names.length){const h=document.createElement('div');h.textContent='דמויות שמורות:';h.style.cssText='margin:10px 0 4px;color:#a9b7cb;font-size:13px';box.appendChild(h);
+  names.forEach(n=>{const b=document.createElement('button');b.type='button';b.textContent='👤 '+n;b.style.cssText='margin:0 0 5px 5px;padding:7px 11px;border-radius:9px;border:1px solid #4b607a;background:#0d1828;color:#fff;cursor:pointer';b.onclick=()=>{const [f,...l]=n.split(' ');$('firstNameInput').value=f;$('lastNameInput').value=l.join(' ');$('codeInput').focus()};box.appendChild(b)})}}catch{}
+placeATMs();
+
+load();updateHud();requestAnimationFrame(frame);setInterval(()=>{try{localStorage.setItem('cashEmpireSaveV1',JSON.stringify({...state,player:{x:player.x,y:player.y}}));syncProfile()}catch(e){}},10000);addEventListener('beforeunload',syncProfile);
+})();
+</script>
+</body>
+</html>

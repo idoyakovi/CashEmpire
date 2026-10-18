@@ -1,0 +1,19 @@
+{
+  "name": "cash-empire-vercel-multiplayer",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Cash Empire multiplayer project for Vercel Functions and Socket.IO",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
+    "ioredis": "^5.6.1",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "vercel": "^54.14.2"
+  }
+}

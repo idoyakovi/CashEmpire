@@ -1,0 +1,5 @@
+Cash Empire Vercel project checks
+- api/socket-io.js: node --check passed
+- index.html inline JavaScript: extracted and node --check passed (2 inline scripts)
+- Deployment status: not deployed or live-tested in a Vercel account
+- Required before public multiplayer: set REDIS_URL to a working Redis database and redeploy
